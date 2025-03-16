@@ -30,7 +30,7 @@ Overlaps between deadlines:,Solapaments entre lliuraments:
 Separate the subjects that have more overlapping deadlines,Separa assignatures que tenen més activitats solapades
 Get recommendation of subjects to enroll,Mostra el ranking d'assignatures recomanades per la teva matricula
 Recommend,Recomana assignatures
-Here's your academic status. Mark subjects as validated or discarded (it is optional),	Hem carregat el teu expedient acadèmic. Selecciona les assignatures que has convalidat o penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent.
+"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hem carregat el teu expedient acadèmic. Selecciona les assignatures que has convalidat o penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent."
 The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema t'ha recomanat en tons de verd les assignatures més adequades a matricular segons les teves preferències.
 Select on the map up to 6 subjects that you want to enroll.,Selecciona en el mapa fins a 6 assignatures que vulguis matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descobreix la càrrega de treball de les assignatures selecionadas. Les dates de lliurament són aproximades.
@@ -69,13 +69,13 @@ Recommendations,Recomanacions
 Selection,Selecció
 Less important,Menys important
 More important,Més important
-If you need it, you can highlight the subjects according to their typology.,Si ho necessites, pots destacar les assignatures segons la seva tipologia.
+"If you need it, you can highlight the subjects according to their typology.","Si ho necessites, pots destacar les assignatures segons la seva tipologia."
 Highlight each type of subject,Destaca un tipus d'assignatura
 All,Totes
 You can also search them.,També pots buscar-les.
 Search subject,Buscar assignatura
 Calculate the workload of the selected subjects.,Calcula la càrrega de treball de les assignatures selecionades.
-You can specify the number of days you think you are going to dedicate to each activity:,Si vols, pots especificar el núm. de dies que creïs que dedicaràs a cada activitat:
+"You can specify the number of days you think you are going to dedicate to each activity:","Si vols, pots especificar el núm. de dies que creïs que dedicaràs a cada activitat:"
 "When you have selected the most suitable combination of subjects, you can download your enrollment configuration.",Quan hagis seleccionat la combinació d'assignatures més adequades pots descarregar la teva configuració de matrícula.
 Download enrolment,Descarregar matrícula
 Activity calendar,Calendari d'entrega d'activitats

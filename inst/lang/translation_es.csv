@@ -30,7 +30,7 @@ Overlaps between deadlines:,Solapamientos entre entregas:
 Separate the subjects that have more overlapping deadlines,Separa asignaturas que tienen más actividades solapadas
 Get recommendation of subjects to enroll,Muestra el ranking de asignaturas recomendadas para tu matrícula
 Recommend,Recomienda asignaturas
-Here's your academic status. Mark subjects as validated or discarded (it is optional),	Hemos cargado tu expediente académico. Selecciona las asignaturas que has convalidado o piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente.
+"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hemos cargado tu expediente académico. Selecciona las asignaturas que has convalidado o piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente."
 The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema te ha recomendado en tonos de verde las asignaturas más adecuadas a matricular según tus preferencias.
 Select on the map up to 6 subjects that you want to enroll.,Selecciona en el mapa hasta 6 asignaturas que quieras matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descubre la carga de trabajo de las asignaturas selecionadas. Las fechas de entrega y las actividades son aproximadas.
@@ -69,13 +69,13 @@ Recommendations,Recomendaciones
 Selection,Selección
 Less important,Menos importante
 More important,Más importante
-If you need it, you can highlight the subjects according to their typology.,Si lo necesitas, puedes destacar las asignaturas según su tipología.
+"If you need it, you can highlight the subjects according to their typology.","Si lo necesitas, puedes destacar las asignaturas según su tipología."
 Highlight each type of subject,Destaca un tipo de asignatura
 All,Todas
 You can also search them.,También puedes buscarlas.
 Search subject,Buscar asignatura
 Calculate the workload of the selected subjects.,Calcula la carga de trabajo de las asignaturas selecionadas.
-You can specify the number of days you think you are going to dedicate to each activity:,Si quieres, puedes especificar el nº de días que crees que vas a dedicar a cada actividad:
+"You can specify the number of days you think you are going to dedicate to each activity:","Si quieres, puedes especificar el nº de días que crees que vas a dedicar a cada actividad:"
 "When you have selected the most suitable combination of subjects, you can download your enrollment configuration.",Cuando hayas seleccionado la combinación de asignaturas más adecuadas puedes descargar tu configuración de matrícula.
 Download enrolment,Descargar matrícula
 Activity calendar,Calendario de entrega de actividades
