@@ -1,0 +1,161 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap');*/
+body, .container-fluid {
+  background-color: white;
+  color: black;
+  margin: 0 auto;
+  padding: 0;
+}
+/*
+h2 {font-family: 'Yusei Magic', sans-serif;} 
+.shiny-input-container {
+  color: #474747;
+}
+*/
+
+.tools ul.language {
+  width: fit-content;
+  float: right;
+  margin-top:0.6rem;
+}
+.tools ul.language li {
+  font-size: 1.6rem;
+  padding-bottom:0.6rem;
+  padding-right:0.6rem;
+  list-style:none;
+  float:left;
+}
+.tools ul.language li a {
+  line-height: 40px;
+}
+.ca.language .item.ca {font-weight:bold;}
+.es.language .item.es {font-weight:bold;}
+.en.language .item.en {font-weight:bold;}
+
+.centered {
+  margin: 0 auto;
+}
+
+
+.selectize-input, .selectize-dropdown {
+  font-size: 82%;
+}
+.irs-bar, .irs-bar-edge {
+  display: none !important;
+}
+
+h1 {
+  font-size: 16px
+}
+
+hr {border-top: 1px solid #888;}
+
+
+.graf { margin:0; position: relative; }
+
+.graf_click_info_tooltip {
+  background:#f3f3f3;
+  padding: 10px;
+  border: 3px solid #aaa;
+  border-radius: 3px;
+  margin-bottom:10px;
+}
+
+.graf_hover_info_tooltip {
+  background:#f3f3f3;
+  padding: 10px;
+  border: 3px solid #aaa;
+  border-radius: 3px;
+}
+.graf_select_info_tooltip {
+  background:#BD9EFF;
+  padding: 10px;
+  border: 3px solid #BD9EFF;
+  border-radius: 3px;
+  margin-bottom:10px;
+}
+.graf_select_info_tooltip .btn-default {
+  background:##864dff;
+  color:black;
+}
+
+.graf_hover_info {
+  z-index:1;
+  margin-top:30px;
+  margin-left:30px;
+}
+.graf_hover_info h4, 
+.graf_hover_info p {
+  padding-bottom:0;
+}
+
+.workload_asignatures {
+  margin-top:10px;
+}
+.step-sliders, .step-recommend,  .selecciona_asignatures, .cal_asignatures, .workload_asignatures, .download_asignatures, .widgets_cal {
+  display:none;
+}
+.selector_asignatures {
+  width:0; height: 0;
+  overflow:hidden;
+}
+
+.graf_hover_info_tooltip h4 {
+  font-weight: bold;
+}
+.graf_hover_info_tooltip h4,
+.graf_hover_info_tooltip p {
+  font-size: 100%;
+  line-height:1;
+  font-family: 'Segoe UI Web (West European)','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',sans-serif
+}
+
+#informatica_ca-grafic,
+#informatica_es-grafic, 
+#informatica_en-grafic  {
+  cursor: pointer;
+}
+
+
+.steps ol {list-style: none; counter-reset: li}
+.steps ol li {
+  counter-increment: li;
+  float: left;
+  margin-right: 2em;
+}
+.steps ol li::before {
+  content: counter(li); color: white; background: #ccc;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+  border-radius: 1em;
+  margin-right: 0.4em;
+  padding-left: 0.2em;
+}
+.steps.step0 .step0,
+.steps.step1 .step1,
+.steps.step2 .step2,
+.steps.step3 .step3,
+.steps.step4 .step4 {
+  font-weight:bold;
+}
+
+.steps.step0 .step0::before ,
+.steps.step1 .step1::before ,
+.steps.step2 .step2::before ,
+.steps.step3 .step3::before ,
+.steps.step4 .step4::before  {
+  background: #4875fb;
+}
+
+.col-sm-3 {
+  z-index: 1;
+}
+.widgets_cal .flechita {
+  position:absolute;
+  top:-60px;
+  height:60px;
+  width:80px;
+#  background:url(../img/flecha3.png);
+  background-repeat: no-repeat;
+  z-index: '-1';
+}

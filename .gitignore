@@ -1,0 +1,17 @@
+# R environment files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Rbuildignore
+
+# Package management
+renv/
+renv.lock
+
+# Student personal data files
+*recomanacions_*.csv
+*aeps_*.csv
+
+# System files
+.DS_Store

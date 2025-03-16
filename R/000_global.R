@@ -1,0 +1,2 @@
+globalVariables(c("resultat", "qQ"))
+

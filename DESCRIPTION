@@ -1,0 +1,54 @@
+Package: visualenrollment
+Title: UOC Visual Enrollment
+Version: 0.0.4.90090
+Authors@R: c(
+    person("Jordi", "Rosell", , "jroselln@gmail.com", role = c("aut", "cre")),
+    person("Miguel Angel", "Sosvilla Luis", , "msosvi@gmail.com", role = "ctb")
+  )
+Description: App that visually recomends enrollment to UOC students.
+License: file LICENSE
+Depends:
+    R (>= 4.2.0)
+Imports:
+    cli,
+    config,
+    deldir,
+    devtools,
+    dplyr,
+    ggforce,
+    ggrepel,
+    htmltools,
+    lubridate,
+    magrittr,
+    MASS,
+    patchwork,
+    readr,
+    renv,
+    scales,
+    shiny,
+    shiny.fluent (>= 0.2.1),
+    shiny.react (>= 0.2.3),
+    shiny.router (>= 0.2.1),
+    shinyjs,
+    shinyscreenshot,
+    tidyverse
+Remotes:
+    Appsilon/shiny.fluent,
+    Appsilon/shiny.react,
+    Appsilon/shiny.router
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Collate:
+    'load_files.R'
+    'load_translations.R'
+    '000_global.R'
+    'asignatura.R'
+    'informaticaServer.R'
+    'informaticaUI.R'
+    'setup.R'
+    'theme.R'
+    'translations.R'
+    'visualenrollmentApp.R'
+    'zzz.R'
