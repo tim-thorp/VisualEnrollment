@@ -1,151 +1,135 @@
-# visualenrollment
+# Visual Enrollment
 
-App that visually recomends enrollment to UOC students.
+A visual recommendation system to assist university students in making informed course enrollment decisions at UOC (Universitat Oberta de Catalunya).
 
-## Installation
+## Project Overview
 
-### 1. Install docker and git on your server.
+This Shiny application helps students:  
 
-### 2. Get the code:
+- Visualize their academic progress on an interactive map  
+- Receive personalized course recommendations based on multiple factors  
+- View potential schedule conflicts through calendar visualization  
+- Plan their enrollment more effectively  
 
-```
-git clone github.com/jrosell/visualenrollment
-```
+## Getting Started
 
-### 3. Configure your github access token in *.Renviron* file.
+### Prerequisites
 
-```
-GITHUB_PAT=<Your personal acess tocken from user with read permisions on the repository>
-```
+- [R](https://www.r-project.org/) (v4.0.0 or higher)
+- [RStudio](https://posit.co/download/rstudio-desktop/) (v1.4 or higher)
+- [Git](https://git-scm.com/downloads)
 
-### 3. Build the image:
+### Cloning the Repository
 
-```
-source .Renviron; nohup docker build . -t visualenrollment --build-arg GITHUB_PAT=${GITHUB_PAT} &
-```
+1. Open your terminal or Git Bash
+2. Navigate to the directory where you want to store the project
+3. Clone the repository:
+   ```
+   git clone https://github.com/tim-thorp/VisualEnrollment.git
+   ```
 
-### 4. Run the container:
+### Opening in RStudio
 
-```
-docker run -d --rm -e "RENV_PATHS_CACHE=/opt/local/renv/cache" -v "/opt/local/renv/cache:/renv/cache" -p 4081:4081 --name visualenrollment visualenrollment
-```
+1. Launch RStudio
+2. Click File > Open Project...
+3. Navigate to the cloned repository folder
+4. Select the `VisualEnrollment.Rproj` file
+5. Click Open
 
-### 5. Deployment
+### Installing Dependencies
 
-Open your browser and go to http://localhost:4081
+This project uses [renv](https://rstudio.github.io/renv/) to manage package dependencies. When you open the project for the first time, you'll see a notification about package dependencies.
 
-For public deployment, further configuration can be done like web server proxy, password protection or domain configuration.
+To install all required packages:
 
-For example, */etc/apache2/sites-available/visualenrollment.triggerbit.com.conf*
-
-```
-<VirtualHost *:80>
-  ServerName visualenrollment.triggerbit.com
-  ServerAlias visualenrollment.triggerbit.com
-  ProxyPass / http://localhost:4081/
-</VirtualHost>
-```
-
-### 6. Updates
-
-Github repository may be updated. If you want to update the version of the current deployment, use the following commands:
-
-```
-git pull
-source .Renviron; docker build . --no-cache -t visualenrollment --build-arg GITHUB_PAT=${GITHUB_PAT} 
-docker run -d --rm -e "RENV_PATHS_CACHE=/opt/local/renv/cache" -v "/opt/local/renv/cache:/renv/cache" -p 4081:4081 --name visualenrollment visualenrollment
+```r
+renv::restore()
 ```
 
-Open your browser and go to http://localhost:4081
+If you're new to renv, it handles project-specific package management, ensuring everyone uses the same package versions.
 
+### GitHub Authentication
 
-## Directroy structure
+Some dependencies are installed from GitHub, which requires authentication. To set up:
 
+1. [Create a Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) on GitHub
+2. Set up your token in R:
+   ```r
+   usethis::edit_r_environ()
+   ```
+3. Add this line to the .Renviron file that opens:
+   ```
+   GITHUB_PAT=your_token_here
+   ```
+4. Save and restart R
 
-* app.R: Run this file to run the app in development.
-* R directory with all the functions that we use.
+### Running the Application
 
-  * 000_global.R: First file loaded, used to set global variables.
-  * zzz.R: Last file loadad, used to load libraries and set web resource paths.
-  * visualenrollmentApp.R: Shiny app where we build the router and use informatica module.
-  * informaticaUI.R: User interface for the informatica module.
-  * informaticaServer.R: Business logic of the app (Valors reactius, mapa asignatures, calendari, expedient, resum matrícula, cercador, selectors admin, events)
-  * asignatura.R: Helper functions related to subjects and semesters.
-  * theme.R: Helper theme functions using fluent UI.
-  * translations.R: Helper functions to show or translate translated messages from english.
-  * setup.R: Helper functions to install required packages and run the app.
+To run the application:
 
-* inst/www/img/logo.png: logo image.
-* inst/www/css/styles.css: all used CSS styles.
-* inst/www/js/scripts.js: all used JavaScript code.
-* data: all used data files (see Data section for details)
+```r
+source("app.R")
+```
 
+Or click the "Run App" button in RStudio if you have app.R open.
 
-## Data
+## Project Structure
 
-I data folder we have the following files for INFORMATICA:
-
-### assignatures_INFORMATICA.csv
-
-* ass: codi de l'assignatura.
-* asem: a quin semstre consta al pla d'estudis.
-* bsem: si es pot cursar en un semestre (1), l'altre (2) o tots dos (0).
-* type: tipus (B, O, P, C, P, T).
-* path: A quins plans d'estudi correspon, pots er més d'un.
-* name: nom en castellà o NA.
-* abrv: abreviatura que es reutilitza en tots els idiomes.
-
-### noms_INFORMATICA.csv
-
-* ass: codi de l'assignatura.
-* name_en: nom de l'assignatura en anglès.
-* name_es: en castellà.
-* name_ca: en català.
-
-### prerequisits_INFORMATICA.csv
-
-* assignatura1: codi per l'asignatura previa
-* assignatura2: codi per l'asgignatura posterior.
-* prerequisit: distancia o importancia del requisit (?).
-
-### recomanacions_INFORMATICA.csv
-
-En proof-of-concept no hi havia header i s'ha deixat sense header (!).
-
-* V1/idp: id del estudiant 000db405523a5cf78db519ff741da81c
-* V1: Té el valor 31 i no sembla que s'utilitzi.
-* V3: Té diferents valors pero no sembla que s'utilitzi.
-* V4/sem: Sembla ser el número de semestre cursat per l'estudiant (?), sent 1 el primer semestre que cursa. 
-* V5: Té valors 0  i 1, no sembla que s'utilitzi.
-* V6: S'utilitza per seleccionar els estudiants que podem utilitzar en el recomanador (x$V6>=10).
-* De V7 a V10 no veig que s'utilitzin.
-* V11 o ass1: Codi de la primera asignatura cursada (?).
-* V12 o ass2: Codi de la segona asignatura cursada simultàniament (?)
-* V13 o nota1: Nota obtinguda en la primara asignatura cursada (?)
-* V14 o nota2: Nota obtinguda en la segona asignatura cursada (?)
-
-### solap1_INFORMATICA.csv i solap2_INFORMATICA.csv
-
-Ara mateix tenim 2 fitxers per INFORMATICA amb les següents columnes:
-
-* subject_code: codi d'assignatura
-* ti: no s'utilitza
-* tf: no s'utilitza
-* sem: tot i que consta el semestre, no s'utilitza, sino que cada fitxer correspon al se semestre corresponent.
-* X1-X128 valors d'activitats que s'utilitzarà per calcular solapaments d'activitats.
-
-
-
-### tipologia_INFORMATICA.csv
-
-* type: tipus (B, O, P, C, P, T).
-* path:  A quins plans d'estudi correspon, pots er més d'un. Cal tenir una fila per opció, per exemple per 1_4 cal indicar 1, 4 i 1_4.
-* tipologia_en: Nom del tipus d'asignatura en anglés.
-* tipologia_ca: català.
-* tipologia_es: castellà.
-
-### translation/translation_*.csv
-
-* en: Text en angles que s'utilitzará com a clau en el codi.
-* *: Text en l'idioma corresponent que será la traducció de l'anglès.
-
+VisualEnrollment/  
+├── app.R                            # Main application entry point  
+├── DESCRIPTION                      # Package metadata and dependencies  
+├── LICENSE                          # License information  
+├── LICENSE.md                       # License information (markdown)  
+├── NAMESPACE                        # Package namespace definitions  
+├── README.md                        # This documentation file  
+├── VisualEnrollment.Rproj           # RStudio project configuration  
+├── renv.lock                        # Package dependency snapshot  
+│  
+├── R/                               # R code directory  
+│   ├── 000_global.R                 # First file loaded, sets global variables  
+│   ├── _disable_autoload.R          # Disables Shiny autoload functionality  
+│   ├── app_config.R                 # Configuration helpers  
+│   ├── asignatura.R                 # Functions for subjects and semesters  
+│   ├── informaticaServer.R          # Server-side logic for computer science program  
+│   ├── informaticaUI.R              # User interface for computer science program  
+│   ├── load_files.R                 # Functions to load data files  
+│   ├── load_translations.R          # Functions to load translation files  
+│   ├── setup.R                      # Setup environment and packages  
+│   ├── theme.R                      # UI styling with Fluent UI  
+│   ├── translations.R               # Translation functionality  
+│   ├── visualenrollmentApp.R        # Main Shiny app router/setup  
+│   └── zzz.R                        # Last file loaded, library setup  
+│  
+├── inst/                            # Installation directory  
+│   ├── data_files/                  # Data files directory  
+│   │   ├── Dabs_INFORMATICA.csv     # Absolute semester distance matrix  
+│   │   ├── Ddif_INFORMATICA.csv     # Subject difficulty distance matrix  
+│   │   ├── Dpop_INFORMATICA.csv     # Popularity distance matrix  
+│   │   ├── Dreq_INFORMATICA.csv     # Prerequisites distance matrix  
+│   │   ├── Dso1_INFORMATICA.csv     # Semester 1 overlaps matrix  
+│   │   ├── Dso2_INFORMATICA.csv     # Semester 2 overlaps matrix  
+│   │   ├── aeps_INFORMATICA.csv     # Student academic record data (not included in repository)  
+│   │   ├── assignatures_INFORMATICA.csv  # Subject information  
+│   │   ├── idps_pilot               # Pilot student IDs  
+│   │   ├── noms_INFORMATICA.csv     # Subject names in different languages  
+│   │   ├── recomanacions_INFORMATICA.csv  # Recommendation data (not included in repository)  
+│   │   ├── solap1_INFORMATICA.csv   # Semester 1 schedule overlap data  
+│   │   ├── solap2_INFORMATICA.csv   # Semester 2 schedule overlap data  
+│   │   └── tipologia_INFORMATICA.csv  # Subject typology information  
+│   │  
+│   ├── golem-config.yml             # Golem package configuration  
+│   │  
+│   ├── lang/                        # Language files directory  
+│   │   ├── translation_ca.csv       # Catalan translations  
+│   │   └── translation_es.csv       # Spanish translations  
+│   │  
+│   └── www/                         # Web assets directory  
+│       ├── css/                     # CSS directory  
+│       │   └── styles.css           # CSS styling  
+│       ├── img/                     # Images directory  
+│       │   └── logo.png             # Application logo  
+│       └── js/                      # JavaScript directory  
+│           └── scripts.js           # JavaScript functionality  
+│  
+└── man/                             # Documentation directory  
+└── visualenrollmentApp.Rd           # Documentation for main app function  
