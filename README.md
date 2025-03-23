@@ -75,6 +75,7 @@ Or click the "Run App" button in RStudio if you have app.R open.
 
 ## Project Structure
 
+```
 VisualEnrollment/  
 ├── app.R                            # Main application entry point  
 ├── DESCRIPTION                      # Package metadata and dependencies  
@@ -132,4 +133,5 @@ VisualEnrollment/
 │           └── scripts.js           # JavaScript functionality  
 │  
 └── man/                             # Documentation directory  
-└── visualenrollmentApp.Rd           # Documentation for main app function  
+    └── visualenrollmentApp.Rd       # Documentation for main app function
+```
