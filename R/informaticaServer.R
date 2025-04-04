@@ -11,14 +11,14 @@ informaticaServer <- function(id, lang) {
     function(input, output, session) {
       
       # Valors reactius --------------------------------------------------------
-
+      
       step <- reactiveValues(val=0)
       hoveredList <- reactiveValues(ass=character())
       clickedList <- reactiveValues(ass=character())
-      convalidaList <- reactiveValues(ass=character())
+      descartaList <- reactiveValues(ass=character())
       recomendedList <- reactiveValues(ass=character())
       selectedList <- reactiveValues(ass=character())
-
+      
       # JULIA 24/12/2022 parámetros de entrada
       # JULIÀ 24/10/2023 de moment ho desactivem
       #claveTutor <- reactive({
@@ -27,30 +27,35 @@ informaticaServer <- function(id, lang) {
       #  }
       #  return(get_query_param()$tutor)
       #})
-
+      
       dadesGrau <- reactive({
         if (is.null(input$grau)) {
-        return(list(
-          # JULIA 05/10/2024
-          #x = NULL,
-          dadesASS = NULL,
-          idps = NULL,
-          ASSTFM = NULL,
-          tipologia = NULL,
-          dadesEST = NULL,
-          noms = NULL,
-          matr = NULL,
-	  Dsol = NULL, Dpop = NULL, Ddif = NULL, Dreq=NULL, Dabs=NULL
-        ))
+          return(list(
+            # JULIA 05/10/2024
+            #x = NULL,
+            dadesASS = NULL,
+            idps = NULL,
+            ASSTFM = NULL,
+            tipologia = NULL,
+            dadesEST = NULL, aepsEST=NULL, 
+            noms = NULL,
+            matr = NULL,
+            Dsol = NULL, Dpop = NULL, Ddif = NULL, Dreq=NULL, Dabs=NULL
+          ))
         }
-      
+        
         # dades del grau seleccionat
-
+        
         g = input$grau
         x <- data_files[[paste0("recomanacions_", g)]]
+        # por qué se repite tantas veces? !!!
+        print(dim(x))
         # JULIA 17/11/23
         #x$grau=g
-
+        
+        # llegir AEPs (todas)
+        aeps <- data_files[[paste0("aeps_", g)]]
+        
         tipologia <- data_files[[paste0("tipologia_", g)]]
         noms <-  data_files[[paste0("noms_", g)]]
         
@@ -73,9 +78,9 @@ informaticaServer <- function(id, lang) {
         } else {
           matr <- solap2[solap2$subject_code %in% selectedList$ass,]
         }    
-
+        
         # JULIÀ 18/10/2023 preparar aquí les matrius
-
+        
         # JULIA 23/12/2022 leer la matriz Dsol (Dso1 / Dso2)    
         if (input$sem1o2==1) {
           temp <- data_files[[paste0("Dso1_", g)]]
@@ -86,7 +91,7 @@ informaticaServer <- function(id, lang) {
         colnames(Dsol)=dadesASS$ass
         Dsol=Dsol/max(Dsol)
         temp=NULL
-
+        
         # JULIA 23/12/2022 leer la matriz Dpop
         temp <- data_files[[paste0("Dpop_", g)]]
         Dpop = matrix(temp$pop, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
@@ -117,15 +122,34 @@ informaticaServer <- function(id, lang) {
         
         # dadesEST
         dadesEST = NULL
+        aepsEST = NULL
         if (!is.null(input$idp) && input$idp!="---") {
           # JULIA 05/10/2023
+          # V1=userid, V3=sem, V4=rel, V11=ass, V12=nota
           dadesEST=x[x[,1]==input$idp,c(3,4,11,12)]
           colnames(dadesEST)=c('sem','rel','ass','nota')
-
+          
           # la última nota de cada asignatura
           dadesEST=aggregate(dadesEST[,c('sem','rel','nota')],list(dadesEST$ass),function(x){return(x[length(x)])})
           colnames(dadesEST)=c('ass','sem','rel','nota')
-
+          
+          # convalidades: és com una nota especial (només les incorporades!)
+          #browser()
+          aepsEST=aeps[aeps$V1==input$idp & aeps$V4=="Reconeguda",c(2,4)]
+          colnames(aepsEST)=c('ass','nota')
+          
+          # si té convalidades
+          if (nrow(aepsEST)>0) {
+            
+            aepsEST$sem="N/A"
+            aepsEST$rel=0
+            aepsEST=aepsEST[,match(names(dadesEST),names(aepsEST))]
+            
+            # afegir les convalidades a les ja matriculades
+            dadesEST=rbind(aepsEST,dadesEST)
+          } else {
+            aepsEST=NULL
+          }
           # JULIA 29/08/2023 mantener el semestre absoluto
           #dadesEST$sem=NULL
         }
@@ -141,7 +165,7 @@ informaticaServer <- function(id, lang) {
           ASSTFM = ASSTFM,
           tipologia = tipologia,
           dadesASS = dadesASS,
-          dadesEST = dadesEST,
+          dadesEST = dadesEST, aepsEST=aepsEST,
           noms = noms,
           matr = matr,
           Dsol = Dsol, Dpop = Dpop, Ddif = Ddif, Dreq = Dreq, Dabs = Dabs
@@ -162,7 +186,7 @@ informaticaServer <- function(id, lang) {
         html = asignatura_hover(input, hovered)
         return(html)
       })
-         
+      
       
       # Gràfic del mapa asignatures -------------------------------------------------------
       
@@ -174,7 +198,9 @@ informaticaServer <- function(id, lang) {
         ASSTFM = dadesGrau$ASSTFM
         dadesASS =  dadesGrau$dadesASS
         dadesEST = dadesGrau$dadesEST
-
+        
+        #browser()
+        
         # tots els parells d'assignatures ordenades per codi
         ass=sort(dadesASS$ass)
         # JULIÀ 17/10/2023 treure ass2
@@ -186,23 +212,23 @@ informaticaServer <- function(id, lang) {
         # JULIA 23/12/2022 adaptar la matriz de solapamientos
         if (is.null(dadesGrau$Dsol)) return(NULL)
         Dsol=dadesGrau$Dsol
-
+        
         # JULIA 23/12/2022 adaptar la matriz de popularidad relativa
         if (is.null(dadesGrau$Dpop)) return(NULL)
         Dpop=dadesGrau$Dpop
-
+        
         # JULIA 23/12/2022 adaptar la matriz de dificultad
         if (is.null(dadesGrau$Ddif)) return(NULL)
         Ddif = dadesGrau$Ddif
-
+        
         # JULIA 24/12/2022 adaptar la matriz de prerequisitos
         if (is.null(dadesGrau$Dreq)) return(NULL)
         Dreq = dadesGrau$Dreq
-
+        
         # JULIA 27/12/2022 adaptar la matriz con el plan de estudios 
         if (is.null(dadesGrau$Dabs)) return(NULL)
         Dabs=dadesGrau$Dabs
-
+        
         # !!! RENDER PLOT
         # creació del gràfic, de moment és un plot
         totOK=!is.null(input$dificultat) &&
@@ -210,7 +236,7 @@ informaticaServer <- function(id, lang) {
           !is.null(input$requisit) &&
           !is.null(input$popularitat) &&
           !is.null(input$overlap)
-
+        
         #print(paste("dificultat:", !is.null(input$dificultat)))
         #print(paste("semestre:", !is.null(input$semestre)))
         #print(paste("requisit:", !is.null(input$requisit)))
@@ -219,25 +245,25 @@ informaticaServer <- function(id, lang) {
         #print(paste("idp:", !is.null(input$idp)))
         #print(paste("indicador:", !is.null(input$indicador)))
         #print(paste("totOk:", totOK))
-              
+        
         if (totOK) {
           dificultat <- input$dificultat
           semestre <- input$semestre
           requisit <- input$requisit
           popularitat <- input$popularitat
           overlap <- input$overlap 
-
+          
           # JULIA 24/12/2022 normalizar los pesos
           WD=5.0
-
+          
           resultat <<- matrix(
-                         # JULIA 23/12/2022 cambiar matrices
-                          (dificultat/WD)*Ddif +
-                          (overlap/WD)*Dsol + 
-                          (requisit/WD)*Dreq +
-                          (popularitat/WD)*Dpop +
-                          (semestre/WD)*Dabs,
-                              length(ass),length(ass))
+            # JULIA 23/12/2022 cambiar matrices
+            (dificultat/WD)*Ddif +
+              (overlap/WD)*Dsol + 
+              (requisit/WD)*Dreq +
+              (popularitat/WD)*Dpop +
+              (semestre/WD)*Dabs,
+            length(ass),length(ass))
           
           if (!is.null(resultat)) {
             # JULIA 23/12/2022 forzar una distancia mínima
@@ -246,7 +272,7 @@ informaticaServer <- function(id, lang) {
             resultat=apply(resultat,c(1,2),function(x){ifelse(x>0,x,runif(1,0,0.1))})
             # JULIA 24/12/2022 forzar una separación para poder generar cuadrícula
             resultat=resultat+1
-
+            
             # crear mapeado 2D de la matriz de distancias resultante
             # JULIA 07/01/2023 se podrían probar otros algoritmos
             q <- sammon(resultat, trace=F)
@@ -264,14 +290,14 @@ informaticaServer <- function(id, lang) {
             if ((q$points[TF,2]-r[1])/(r[2]-r[1])<0.5) {
               q$points[,2]=-q$points[,2]
             }
-
+            
             q <- as.data.frame(q$points)
             q$ass=ass
             
             # afegir dades de les assignatures
             q <- merge(q,dadesASS,'ass',all.x=T)
             #q$TFM=as.factor(ifelse(q$ass==ASSTFM,0,0))
-
+            
             # afegir dades estudiant
             if (!is.null(input$idp)) {
               if (input$idp!="---") {
@@ -283,7 +309,7 @@ informaticaServer <- function(id, lang) {
             } else {
               q$nota=translate(lang, "Pending")
             }
-
+            
             # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
             # ordenado
             q$full_name=dadesGrau$noms[[paste0("name_",lang)]]
@@ -296,7 +322,7 @@ informaticaServer <- function(id, lang) {
             #)
             #q <- left_join (q, asignatures) %>%
             #  mutate(full_name = paste0(abrv, ": ", noms))
-
+            
             # glimpse(q)
             
             # Controlar estats (Controlar estados)
@@ -314,9 +340,9 @@ informaticaServer <- function(id, lang) {
               mutate(nota = ifelse(ass %in% recomendedList$ass[4], R4, nota)) %>%
               mutate(nota = ifelse(ass %in% recomendedList$ass[5], R5, nota)) %>%
               mutate(nota = ifelse(ass %in% recomendedList$ass[6], R6, nota)) %>% 
-              mutate(nota = ifelse(ass %in% convalidaList$ass, translate(lang, "Transfer"), nota)) %>% 
+              mutate(nota = ifelse(ass %in% descartaList$ass, translate(lang, "Discarded"), nota)) %>% 
               mutate(nota = ifelse(ass %in% selectedList$ass, translate(lang, "Selected"), nota))
-
+            
             if (!is.null(input$sem1o2)) {
               q <- q %>% 
                 mutate(nota = ifelse(!bsem %in% c(0,input$sem1o2), translate(lang,"Not available"), nota))
@@ -325,21 +351,24 @@ informaticaServer <- function(id, lang) {
                 mutate(nota = ifelse(!bsem %in% c(0,1), translate(lang,"Not available"), nota))
             }
             
-
+            
             # forzar y ordenar todas las notas posibles
+            # incloure les convalidades (Reconeguda)
             q[q$nota %in% c('A','NO','EX','M'),'nota']=translate(lang, "Pass")
             q[q$nota %in% c('NP','SU'),'nota']=translate(lang, "Fail")
-
+            q[q$nota %in% c('Reconeguda'),'nota']=translate(lang, "Transfer")
+            
             q$nota=factor(q$nota,c(translate(lang, "Pass"),
                                    translate(lang, "Fail"),
                                    translate(lang, "Pending"),
                                    translate(lang, "Not available"),
                                    translate(lang, "Transfer"),
+                                   translate(lang, "Discarded"),
                                    translate(lang, "Selected"),
                                    R1,R2,R3,R4,R5,R6))
             # JULIA 24/12/2022 cambio pendiente de la paleta de colores
             #pal <- c("#c5c4c4", "#FF7D87", "#9aebfd", "#fdf6f6", "#e0e0e0", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
-            pal <- c("#73edff", "#FF7D87", "#c5c4c4", "#fdf6f6", "#D8F6FF", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
+            pal <- c("#73edff", "#FF7D87", "#c5c4c4", "#fdf6f6", "#D8F6FF", "#ccbb11", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
             
             # graf
             colorT="black"
@@ -348,7 +377,7 @@ informaticaServer <- function(id, lang) {
               theme(
                 panel.background=element_rect(fill=NA, color=NA)
               )
-
+            
             # si no hi ha cap indicador triat
             if (input$idp!="---" || is.null(input$indicador)) {
               # color de l'àrea segons la nota
@@ -367,7 +396,7 @@ informaticaServer <- function(id, lang) {
             } else {
               # color de l'àrea en funció de l'indicador
             }
-
+            
             # afegir les assignatures
             q$quines=1
             if (!is.null(input$tipologia)) {
@@ -376,10 +405,10 @@ informaticaServer <- function(id, lang) {
             if (!is.null(input$buscar) && str_length(input$buscar) > 0) {
               q <- asignatura_buscar(lang, dadesGrau, q, input)
             }
-
-	    # JULIA 20/12/2022 forzar que aparezcan todas las asignaturas
+            
+            # JULIA 20/12/2022 forzar que aparezcan todas las asignaturas
             # cuando se seleccionan las asignaturas a matricular no se
-	    # muestran los "centros" de las recomendadas, pero solo si la
+            # muestran los "centros" de las recomendadas, pero solo si la
             # selección de nombre de asignatura está vacía
             if (!is.null(input$tipologia) & is.null(input$buscar)) {
               if (input$tipologia==translate(lang, "All")) {
@@ -401,11 +430,11 @@ informaticaServer <- function(id, lang) {
                 legend.title = element_text(size = 15, face = "bold"),
                 legend.text = element_text(size = 13)
               )
-
+            
             # guardamos el mapa para hover, etc.
             #print("save qQ")
             qQ <<- q
-
+            
             # show map
             gg
           }
@@ -413,11 +442,11 @@ informaticaServer <- function(id, lang) {
         
       }, height=600)
       
- 
+      
       
       
       # Gràfic del calendari --------------------------------------------------------------
-
+      
       output$cal=renderPlot({
         dadesGrau = dadesGrau()
         lli=NULL
@@ -469,7 +498,7 @@ informaticaServer <- function(id, lang) {
         
         # calculem la carrega mitjana per dia 
         perfil=aggregate(res$load,list(res$dia),sum)$x
-
+        
         # OLD: Average daily activities;  load=round(mean(perfil)*100)/100
         load <- sum(perfil > 0)
         load_prop <- round(100 * (load / length(perfil)), 2)
@@ -568,7 +597,11 @@ informaticaServer <- function(id, lang) {
           temp[temp$nota=="A",'nota']=translate(lang, "Satisfactory")
           temp[temp$nota=="SU",'nota']=translate(lang, "Fail")
           temp[temp$nota=="NP",'nota']=translate(lang, "Withdrawal")
+          # falta traduir les convalidacions
+          temp[temp$nota=="Reconeguda",'nota']=translate(lang, "Transfer")
+          # traduir els noms dels camps 
           colnames(temp)=c(translate(lang, "Semester"), translate(lang, "Subject"), translate(lang, "Mark"))
+          # mostrar la taula tal qual
           temp
         }
       }, bordered=T, digits=0)
@@ -588,8 +621,8 @@ informaticaServer <- function(id, lang) {
         ) %>% 
           left_join(dadesGrau$dadesASS, by = "ass") %>% 
           mutate(full_name = paste0(full_name," (",abrv,")"))
-        convalidaStr <- asignatures %>% 
-          filter(ass %in% convalidaList$ass) %>% 
+        descartaStr <- asignatures %>% 
+          filter(ass %in% descartaList$ass) %>% 
           pull(full_name)
         recomanaStr <- asignatures %>% 
           filter(ass %in% recomendedList$ass) %>% 
@@ -601,19 +634,19 @@ informaticaServer <- function(id, lang) {
           h2(translate(lang, "¡Gracias por utilizar Visual Enrollment!")),
           h3(translate(lang, "Tus preferencias y selección para la siguiente matricula")),
           tags$ol(
-            tags$li(class="step0", translate(lang, "Discard"), p(paste(convalidaStr, collapse = ", "))),
+            tags$li(class="step0", translate(lang, "Discard"), p(paste(descartaStr, collapse = ", "))),
             tags$li(class="step1", translate(lang, "Preferences"),
-              div(
-                translate(lang,"Difficulty:"), paste0(input$dificultat, "/5"),
-                br(),
-                translate(lang, "Popularity:"),  paste0(input$popularitat, "/5"),
-                br(),
-                translate(lang, "Previous requirements:"),  paste0(input$requisit, "/5"),
-                br(),
-                translate(lang, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
-                br(),
-                br(),
-              )
+                    div(
+                      translate(lang,"Difficulty:"), paste0(input$dificultat, "/5"),
+                      br(),
+                      translate(lang, "Popularity:"),  paste0(input$popularitat, "/5"),
+                      br(),
+                      translate(lang, "Previous requirements:"),  paste0(input$requisit, "/5"),
+                      br(),
+                      translate(lang, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
+                      br(),
+                      br(),
+                    )
             ),
             tags$li(class="step2", translate(lang, "Recommendations"), p(paste(recomanaStr, collapse = ", "))),
             tags$li(class="step3", translate(lang, "Selection"), p(paste(seleccioStr, collapse = ", "))),
@@ -702,7 +735,7 @@ informaticaServer <- function(id, lang) {
           #if (claveTutor=="DEMOECTEL2023") {
           #  idps = c("00000000000000000000000000000000")
           #}
-    
+          
           ns <- session$ns
           selectInput(
             ns("idp"),
@@ -725,20 +758,20 @@ informaticaServer <- function(id, lang) {
         if (is.null(clicked)) return(NULL)
         #print(step$val)
         if(step$val == 0) {
-          convalidable <- !(clicked$ass %in% selectedList$ass) &&
-            clicked$nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Transfer"))
-          if(convalidable) { 
-            if(length(convalidaList$ass)>0 && clickedList$ass[[1]] %in% convalidaList$ass) {
+          descartable <- !(clicked$ass %in% selectedList$ass) &&
+            clicked$nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Discarded"))
+          if(descartable) { 
+            if(length(descartaList$ass)>0 && clickedList$ass[[1]] %in% descartaList$ass) {
               # print(paste0("input$graf_click desconvalida clicked ",clickedList$ass[[1]]))
-              convalidaList$ass <- convalidaList$ass[ !convalidaList$ass %in% clickedList$ass[[1]] ]
+              descartaList$ass <- descartaList$ass[ !descartaList$ass %in% clickedList$ass[[1]] ]
             } else {
               # print(paste0("input$graf_click convalida clicked ",clickedList$ass[[1]]))
-              convalidaList$ass <- unique(c(clickedList$ass[[1]], convalidaList$ass))
+              descartaList$ass <- unique(c(clickedList$ass[[1]], descartaList$ass))
             }
           }
         }
         if(step$val > 1) {
-          matriculable <- step$val != 0 && !(clicked$ass %in% convalidaList$ass) 
+          matriculable <- step$val != 0 && !(clicked$ass %in% descartaList$ass) 
           matriculable <- matriculable & (clicked$nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Selected")))
           matriculable <- matriculable | str_detect(clicked$nota, "^(R1|R2|R3|R4|R5|R6)")
           
@@ -775,7 +808,7 @@ informaticaServer <- function(id, lang) {
         session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
         matriculables <- as_tibble(qQ) %>% 
           filter(nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Selected")) | str_detect(nota, "^(R1|R2|R3|R4|R5|R6)"))
-
+        
         # print("matriculables")
         # print(as_tibble(qQ))
         
@@ -807,16 +840,16 @@ informaticaServer <- function(id, lang) {
             a_x <- matriculables[matriculables$ass==A,'V1']
             a_y <- matriculables[matriculables$ass==A,'V2']
             for(B in b_set$ass){
-#              a_x <- matriculables %>% filter(ass == A) %>% pull(V1)
-#              a_y <- matriculables %>% filter(ass == A) %>% pull(V2)
-#              b_x <- b_set %>% filter(ass == B) %>% pull(V1)
-#              b_y <- b_set %>% filter(ass == B) %>% pull(V2)
+              #              a_x <- matriculables %>% filter(ass == A) %>% pull(V1)
+              #              a_y <- matriculables %>% filter(ass == A) %>% pull(V2)
+              #              b_x <- b_set %>% filter(ass == B) %>% pull(V1)
+              #              b_y <- b_set %>% filter(ass == B) %>% pull(V2)
               b_x <- b_set[b_set$ass==B,'V1']
               b_y <- b_set[b_set$ass==B,'V2']
-          
+              
               # JULIA 18/11/2023 fòrmula errònia!!!
               d=sqrt((a_x-b_x)^2+(a_y-b_y)^2)
-
+              
               # si se trata de una asignatura suspendida, "forzar" que sea
               # más probable recomendarla reduciendo la distancia
               if(A %in% suspeses){
@@ -826,16 +859,16 @@ informaticaServer <- function(id, lang) {
             }
             # guardar la distancia promedio calculada
             dist[dist$ass==A,'d']=dist_a/b_n
-#            dist <- dist %>% 
-#              mutate(d = if_else(ass == A, dist_a/b_n, d))
+            #            dist <- dist %>% 
+            #              mutate(d = if_else(ass == A, dist_a/b_n, d))
           }
-
+          
           if(length(superades$ass)>0 | length(convalidades$ass)>0){
             arranged_dist <- dist %>% arrange(d)
           }else{
             arranged_dist <- dist %>% arrange(desc(d))
           }
-
+          
           recomendedList$ass <- arranged_dist %>% 
             head(n = 6) %>%
             pull(ass)
@@ -850,7 +883,7 @@ informaticaServer <- function(id, lang) {
             sample_n(6) %>%
             pull(ass)
         }
-
+        
         # mostra_avis_traduit(lang, "The system has marked in shades of green the ranking of the 6 most recommended subjects for your enrollment.")
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
@@ -861,7 +894,7 @@ informaticaServer <- function(id, lang) {
       
       observeEvent(input$previous1, {
         clickedList$ass = character()
-        convalidaList$ass = character()
+        descartaList$ass = character()
         selectedList$ass = character()
         recomendedList$ass = character()
         step$val <- 0
@@ -888,7 +921,7 @@ informaticaServer <- function(id, lang) {
         step$val <- 1
         session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
       })
-        
+      
       observeEvent(input$tipologia, {
         updateTextInput(session, "buscar", value = "")
       })

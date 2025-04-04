@@ -30,7 +30,7 @@ Overlaps between deadlines:,Solapaments entre lliuraments:
 Separate the subjects that have more overlapping deadlines,Separa assignatures que tenen més activitats solapades
 Get recommendation of subjects to enroll,Mostra el ranking d'assignatures recomanades per la teva matricula
 Recommend,Recomana assignatures
-"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hem carregat el teu expedient acadèmic. Selecciona les assignatures que has convalidat o penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent."
+"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hem carregat el teu expedient acadèmic. Selecciona les assignatures que penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent."
 The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema t'ha recomanat en tons de verd les assignatures més adequades a matricular segons les teves preferències.
 Select on the map up to 6 subjects that you want to enroll.,Selecciona en el mapa fins a 6 assignatures que vulguis matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descobreix la càrrega de treball de les assignatures selecionadas. Les dates de lliurament són aproximades.
@@ -64,6 +64,7 @@ Deadline dates and activities are approximate.,Les dates de lliurament i les act
 TFM:,TFM (Ex: 05.616):
 Academic record,El teu expedient
 Discard,Descartes
+Discarded,Descartada
 Preferences,Preferències
 Recommendations,Recomanacions
 Selection,Selecció

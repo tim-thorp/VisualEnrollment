@@ -65,6 +65,12 @@ load_files <- function(){
                                           sep=";",
                                           colClasses=c("numeric", "numeric", "numeric")) 
 
+  # JULIA 15/01/2024 load AEPs file
+  files$aeps_INFORMATICA <- read.table(system.file("data_files", "aeps_INFORMATICA.csv", 
+                                                           package = "visualenrollment"),
+                                          header=FALSE,
+                                          sep=";",
+                                          colClasses=c("character", "character", "numeric", "character"))
 
   #cli::cli_progress_step("Load Dpop_INFORMATICA.csv")
   files$Dpop_INFORMATICA <- read.table(system.file("data_files", "Dpop_INFORMATICA.csv", 
