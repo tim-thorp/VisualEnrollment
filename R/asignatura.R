@@ -1,113 +1,92 @@
-
-asignatura_posicio <- function(posicio){
-  ret <- NULL
+find_closest_subject <- function(click_position){
+  closest_subject <- NULL
   tryCatch(
     expr = {
 
       # JULIA 18/12/2022
-      if (is.null(qQ)) return(NULL)
+      if (is.null(subject_positions)) return(NULL)
 
       #print("asignaturaPosicio")
-      dist=sqrt((posicio$x-qQ$V1)^2+(posicio$y-qQ$V2)^2)
-      dmin = min(dist)
+      distances=sqrt((click_position$x-subject_positions$x)^2+(click_position$y-subject_positions$y)^2)
+      min_distance = min(distances)
       
       # JULIA 18/12/2022 canviar threshold i afegir else 
-      if (dmin < 0.5) {
-        proper=which.min(dist)
-        ret <- qQ[proper,]
+      if (min_distance < 0.5) {
+        closest_subject_index=which.min(distances)
+        closest_subject <- subject_positions[closest_subject_index,]
       } else {
         return(NULL)
       }
     },
     error = function(e){ 
-      message("Error in asignaturaPosicio:")
+      message("Error in find_closest_subject:")
       message(e)
       return(NULL)
     }
   )
-  return(ret)
+  return(closest_subject)
 }
 
-asignatura_tipologia <- function(lang, dadesGrau, assignatura) {
+get_subject_type <- function(language, degree_data, subject_data) {
   tryCatch(
     expr = {
-      tipologia_df <- dadesGrau$tipologia
-      join <- assignatura %>% left_join(tipologia_df, by = c("type", "path"))
+      subject_type_df <- degree_data$subject_type
+      join <- subject_data %>% left_join(subject_type_df, by = c("type", "path"))
       if(nrow(join)!=1) return("")
-      res <- join %>% .[[paste0("tipologia_",lang)]]
-      #print("asignatura_tipologia")
-      #print(res)
-      return(res)
+      subject_type_name <- join %>% .[[paste0("tipologia_",language)]]
+      return(subject_type_name)
     },
     error = function(e){
-      message("Error in asignaturaTipologia:")
+      message("Error in get_subject_type:")
       message(e)
       return("")
     }
   )
 }
 
-asignatura_quines <- function(lang, dadesGrau, q, input) {
-  tipologia_df <- dadesGrau$tipologia
-  selected <- tipologia_df %>% 
-    mutate(tipologia = .[[paste0("tipologia_", lang)]]) %>% 
-    filter(tipologia == input$tipologia) %>% 
+filter_subjects_by_type <- function(language, degree_data, subjects_df, input) {
+  subject_type_df <- degree_data$subject_type
+  selected <- subject_type_df %>% 
+    mutate(subject_type = .[[paste0("tipologia_", language)]]) %>% 
+    filter(subject_type == input$subject_type) %>% 
     transmute(type, path)
 
   # básicas, troncales, etc. (no itinerarios que pueden ser compuestos)
   # JULIÀ 02/11/2023 falta separar "Totes" que no devuelve nada!!!
   if (("0" %in% selected$path) | (length(selected$path)==0)) {
-    #q <- q %>%
-    #  mutate(
-    #    quines = (q$type %in% selected$type)
-    #  )
-    q$quines <- q$type %in% selected$type
+    subjects_df$selected_subjects <- subjects_df$type %in% selected$type
   } else {
     # JULIA 31/10/23 itinerarios compuestos
-    #selected_ass <-  semi_join(q, selected) %>% pull(ass)
-    selected_ass <- q[str_detect(q$path,selected$path),'ass']
+    selected_subject <- subjects_df[str_detect(subjects_df$path,selected$path),'subject_code']
     
-    #print("selected_ass")
-    #print(selected_ass)
-    #q <- q %>%
-    #  mutate(
-    #    quines = (ass %in% selected_ass)
-    #  )
-    q$quines <- q$ass %in% selected_ass
+    subjects_df$selected_subjects <- subjects_df$subject_code %in% selected_subject
   }
-  return(q)
+  return(subjects_df)
 }
 
-
-asignatura_buscar <- function(lang, dadesGrau, q, input) {
-  noms_df <- dadesGrau$noms
-  #print("asignatura_buscar")
-  #print(noms_df)
-  selected_ass <- noms_df %>% 
-    mutate(name = .[[paste0("name_", lang)]]) %>% 
-    filter(str_detect(name, input$buscar)) %>% 
-    pull(ass)
-  #print("selected_ass")
-  #print(selected_ass)
-  q <- q %>%
-    mutate(
-      quines = ass %in% selected_ass
-    )
-  return(q)
+search_subjects <- function(language, degree_data, subjects_df, input) {
+  subject_names_df <- degree_data$subject_names
+  selected_subjects <- subject_names_df %>% 
+    mutate(name = .[[paste0("name_", language)]]) %>% 
+    filter(str_detect(name, input$search_text)) %>% 
+    pull(subject_code)
+  subjects_df <- subjects_df %>%
+    mutate(selected_subjects = subject_code %in% selected_subjects)
+  return(subjects_df)
 }
 
-asignatura_hover <- function(input, hovered) {
+create_subject_hover_info <- function(input, hovered) {
   div(
     class = "graf_hover_info_tooltip",
     # JULIA 03/01/2023 situar el tooltip, no funciona del tot bé !!!
     style = "position: absolute; z-index: 100; width: 200px; left: 900px; top: 0px",
     # JULIA 30/12/2022 añadir el nombre completo
     p(hovered$full_name),
-    p(hovered$tipologia),
+    p(hovered$subject_type),
     # JULIÀ 07/11/2024 quitar semestre
     #p(paste0("Semestre: ", hovered$asem)),
-    p(paste0("Codi: ", hovered$ass)),
-    p(hovered$nota),
+    p(paste0("Codi: ", hovered$subject_code)),
+    p(hovered$subject_mark),
     # JULIA 07/01/2023 mostrar la posición del elemento !!!
     #p(paste0(round(input$graf_hover$coords_img$x),", ",round(input$graf_hover$coords_img$y))),
     tags$script(
@@ -123,43 +102,43 @@ asignatura_hover <- function(input, hovered) {
 }
 
 
-asignatura_nom <- function(lang, dadesGrau, hovered) {
-  res <- dadesGrau$noms %>% filter(str_detect(ass, paste0("^",hovered$ass,"$"))) %>% .[[paste0("name_", lang)]]
-  return(res)
+get_subject_name <- function(language, degree_data, hovered) {
+  subject_name <- degree_data$subject_names %>% 
+    filter(str_detect(subject_code, paste0("^",hovered$subject_code,"$"))) %>% 
+    .[[paste0("name_", language)]]
+  return(subject_name)
 }
 
 
-inici_semestres <- function() {
+get_semester_start_dates <- function() {
   data <- tibble(
     day  = seq(as.Date(lubridate::today()),as.Date(lubridate::today() + 365), "day"),
   ) %>% 
     mutate(
       wday = lubridate::wday(day),
       month = lubridate::month(day),
-      sem1 = lubridate::month(day) == 9,
-      sem2 = lubridate::month(day) == 2
+      first_semester_start = lubridate::month(day) == 9,
+      second_semester_start = lubridate::month(day) == 2
     )
-  tercer_miercoles <- data %>% 
+  third_wednesday <- data %>% 
     filter(wday == 4) %>%
     group_by(year_month = lubridate::floor_date(day, unit = 'month')) %>%
     slice(3L)
   list(
-    sem1 = tercer_miercoles %>% filter(sem1) %>% top_n(1) %>% pull(day),
-    sem2 = tercer_miercoles %>% filter(sem2)%>% top_n(1) %>% pull(day)
+    first_semester_start = third_wednesday %>% filter(first_semester_start) %>% top_n(1) %>% pull(day),
+    second_semester_start = third_wednesday %>% filter(second_semester_start)%>% top_n(1) %>% pull(day)
   )
 }
 
 
 
-numero_asignatures <- function(list) {
+count_selected_subjects <- function(list) {
   i <- 0
-  if(!is.na(list$ass[1])) i <- i + 1
-  if(!is.na(list$ass[2])) i <- i + 1
-  if(!is.na(list$ass[3])) i <- i + 1
-  if(!is.na(list$ass[4])) i <- i + 1
-  if(!is.na(list$ass[5])) i <- i + 1
-  if(!is.na(list$ass[6])) i <- i + 1
-  #print("asignatura 6")
-  #print(list$ass[6])
+  if(!is.na(list$subject_code[1])) i <- i + 1
+  if(!is.na(list$subject_code[2])) i <- i + 1
+  if(!is.na(list$subject_code[3])) i <- i + 1
+  if(!is.na(list$subject_code[4])) i <- i + 1
+  if(!is.na(list$subject_code[5])) i <- i + 1
+  if(!is.na(list$subject_code[6])) i <- i + 1
   return(i)
 }

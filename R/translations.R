@@ -10,7 +10,7 @@ translate <- function(lang, key) {
   return(key)
 }
 
-mostra_avis_traduit <- function(lang, text) {
+show_translated_notice <- function(lang, text) {
   showModal(modalDialog(
     title = translate(lang,"Information"),
     translate(lang, text),

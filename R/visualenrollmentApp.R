@@ -6,23 +6,23 @@ visualenrollmentApp <- function(...){
   router <- make_router(
     route(
       "ca", 
-      informaticaUI("informatica_ca", "ca"),
+      subjectEnrollmentUI("subject_enrollment_ca", "ca"),
       function(input, output, session) {
-        informaticaServer("informatica_ca", "ca")
+        subjectEnrollmentServer("subject_enrollment_ca", "ca")
       }
     ),
     route(
       "es",
-      informaticaUI("informatica_es", "es"),
+      subjectEnrollmentUI("subject_enrollment_es", "es"),
       function(input, output, session) {
-        informaticaServer("informatica_es", "es")
+        subjectEnrollmentServer("subject_enrollment_es", "es")
       }
     ),
     route(
       "en", 
-      informaticaUI("informatica_en", "en"),
+      subjectEnrollmentUI("subject_enrollment_en", "en"),
       function(input, output, session) {
-        informaticaServer("informatica_en", "en")
+        subjectEnrollmentServer("subject_enrollment_en", "en")
       }
     ),
     NULL

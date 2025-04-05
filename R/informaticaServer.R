@@ -1,23 +1,22 @@
-
 # Carga de los fichero de datos
 data_files <- load_files()
 
 # Carga de los ficheros de traduccion
 translations <- load_translations()
 
-informaticaServer <- function(id, lang) {
+subjectEnrollmentServer <- function(id, language) {
   moduleServer(
     id,
     function(input, output, session) {
       
       # Valors reactius --------------------------------------------------------
       
-      step <- reactiveValues(val=0)
-      hoveredList <- reactiveValues(ass=character())
-      clickedList <- reactiveValues(ass=character())
-      descartaList <- reactiveValues(ass=character())
-      recomendedList <- reactiveValues(ass=character())
-      selectedList <- reactiveValues(ass=character())
+      enrollment_step <- reactiveValues(current_step=0)
+      hovered_list <- reactiveValues(subject_code=character())
+      clicked_list <- reactiveValues(subject_code=character())
+      discarded_list <- reactiveValues(subject_code=character())
+      recommended_list <- reactiveValues(subject_code=character())
+      selected_list <- reactiveValues(subject_code=character())
       
       # JULIA 24/12/2022 parámetros de entrada
       # JULIÀ 24/10/2023 de moment ho desactivem
@@ -28,162 +27,157 @@ informaticaServer <- function(id, lang) {
       #  return(get_query_param()$tutor)
       #})
       
-      dadesGrau <- reactive({
-        if (is.null(input$grau)) {
+      degree_data <- reactive({
+        if (is.null(input$degree)) {
           return(list(
             # JULIA 05/10/2024
-            #x = NULL,
-            dadesASS = NULL,
-            idps = NULL,
-            ASSTFM = NULL,
-            tipologia = NULL,
-            dadesEST = NULL, aepsEST=NULL, 
-            noms = NULL,
-            matr = NULL,
-            Dsol = NULL, Dpop = NULL, Ddif = NULL, Dreq=NULL, Dabs=NULL
+            subjects_data = NULL,
+            available_student_ids = NULL,
+            final_project_code = NULL,
+            subject_type = NULL,
+            student_data = NULL,
+            transferred_credits = NULL, 
+            subject_names = NULL,
+            subject_overlap_data = NULL,
+            difficulty_distance_matrix = NULL,
+            popularity_distance_matrix = NULL, 
+            prerequisite_distance_matrix = NULL, 
+            overlap_distance_matrix = NULL, 
+            semester_distance_matrix = NULL
           ))
         }
         
         # dades del grau seleccionat
-        
-        g = input$grau
-        x <- data_files[[paste0("recomanacions_", g)]]
-        # por qué se repite tantas veces? !!!
-        print(dim(x))
-        # JULIA 17/11/23
-        #x$grau=g
-        
+        selected_degree = input$degree
+        student_enrollment_data <- data_files[[paste0("recomanacions_", selected_degree)]]
+
+        # JULIA 17/11/23        
         # llegir AEPs (todas)
-        aeps <- data_files[[paste0("aeps_", g)]]
+        transferred_credits_data <- data_files[[paste0("aeps_", selected_degree)]]
         
-        tipologia <- data_files[[paste0("tipologia_", g)]]
-        noms <-  data_files[[paste0("noms_", g)]]
+        subject_type <- data_files[[paste0("tipologia_", selected_degree)]]
+        subject_names <-  data_files[[paste0("noms_", selected_degree)]]
         
         # JULIA 27/12/2022 eliminar dadesASSsem
-        dadesASS = data_files[[paste0("assignatures_", input$grau)]]        
+        subjects_data = data_files[[paste0("assignatures_", input$degree)]]        
         
         # Estudiants: filtrar per nombre de semestres i tope d'assignatures
         # matriculades
         # JULIA 23/12/2022 cambiar el filtro para cargar más estudiantes
         # JULIA 13/10/2023 cambiar para el nuevo formato
-        #idps=unique(x[(x$V7+x$V9)<=20,'V1'])
-        idps=unique(x$V1)
-        idps=c("---", idps)
+        available_student_ids=unique(student_enrollment_data$user_id)
+        available_student_ids=c("---", available_student_ids)
         
         # Solapaments i semestres
-        solap1 <- data_files[[paste0("solap1_", g)]]
-        solap2 <- data_files[[paste0("solap2_", g)]]
-        if (input$sem1o2==1) {
-          matr <- solap1[solap1$subject_code %in% selectedList$ass,]
+        semester1_overlap <- data_files[[paste0("solap1_", selected_degree)]]
+        semester2_overlap <- data_files[[paste0("solap2_", selected_degree)]]
+        if (input$selected_semester==1) {
+          subject_overlap_data <- semester1_overlap[semester1_overlap$subject_code %in% selected_list$subject_code,]
         } else {
-          matr <- solap2[solap2$subject_code %in% selectedList$ass,]
+          subject_overlap_data <- semester2_overlap[semester2_overlap$subject_code %in% selected_list$subject_code,]
         }    
         
         # JULIÀ 18/10/2023 preparar aquí les matrius
         
-        # JULIA 23/12/2022 leer la matriz Dsol (Dso1 / Dso2)    
-        if (input$sem1o2==1) {
-          temp <- data_files[[paste0("Dso1_", g)]]
-        } else { 
-          temp <- data_files[[paste0("Dso2_", g)]]
-        }    
-        Dsol = matrix(temp$sol, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
-        colnames(Dsol)=dadesASS$ass
-        Dsol=Dsol/max(Dsol)
-        temp=NULL
+        # JULIA 23/12/2022 leer la matriz Dsol (Dso1 / Dso2)  
+        raw_matrix_data <- data_files[[paste0("Dso1_", selected_degree)]]
+        overlap_distance_matrix = matrix(raw_matrix_data$overlap_data, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
+        colnames(overlap_distance_matrix)=subjects_data$subject_code
+        overlap_distance_matrix=overlap_distance_matrix/max(overlap_distance_matrix)
+        raw_matrix_data=NULL
         
         # JULIA 23/12/2022 leer la matriz Dpop
-        temp <- data_files[[paste0("Dpop_", g)]]
-        Dpop = matrix(temp$pop, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
-        colnames(Dpop)=dadesASS$ass
-        Dpop=Dpop/max(Dpop)
-        temp=NULL
+        raw_matrix_data <- data_files[[paste0("Dpop_", selected_degree)]]
+        popularity_distance_matrix = matrix(raw_matrix_data$popularity_score, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
+        colnames(popularity_distance_matrix)=subjects_data$subject_code
+        popularity_distance_matrix=popularity_distance_matrix/max(popularity_distance_matrix)
+        raw_matrix_data=NULL
         
         # JULIA 23/12/2022 leer la matriz Ddif
-        temp <- data_files[[paste0("Ddif_", g)]]
-        Ddif = matrix(temp$dif, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
-        colnames(Ddif)=dadesASS$ass
-        Ddif=Ddif/max(Ddif)
-        temp=NULL
+        raw_matrix_data <- data_files[[paste0("Ddif_", selected_degree)]]
+        difficulty_distance_matrix = matrix(raw_matrix_data$difficulty_score, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
+        colnames(difficulty_distance_matrix)=subjects_data$subject_code
+        difficulty_distance_matrix=difficulty_distance_matrix/max(difficulty_distance_matrix)
+        raw_matrix_data=NULL
         
         # JULIA 24/12/2022 prerequisitos 
-        temp <- data_files[[paste0("Dreq_", g)]]        
-        Dreq = matrix(temp$req, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
-        colnames(Dreq)=dadesASS$ass
-        Dreq=Dreq/max(Dreq)
-        temp=NULL
+        raw_matrix_data <- data_files[[paste0("Dreq_", selected_degree)]]        
+        prerequisite_distance_matrix = matrix(raw_matrix_data$prerequisite_score, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
+        colnames(prerequisite_distance_matrix)=subjects_data$subject_code
+        prerequisite_distance_matrix=prerequisite_distance_matrix/max(prerequisite_distance_matrix)
+        raw_matrix_data=NULL
         
         # JULIA 27/12/2022 ordenación semestral 
-        temp <- data_files[[paste0("Dabs_", g)]]        
-        Dabs = matrix(temp$abs, nrow=length(dadesASS$ass), ncol=length(dadesASS$ass), byrow=T)
-        colnames(Dabs)=dadesASS$ass
-        Dabs=Dabs/max(Dabs)
-        temp=NULL
+        raw_matrix_data <- data_files[[paste0("Dabs_", selected_degree)]]        
+        semester_distance_matrix = matrix(raw_matrix_data$semester_distance, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
+        colnames(semester_distance_matrix)=subjects_data$subject_code
+        semester_distance_matrix=semester_distance_matrix/max(semester_distance_matrix)
+        raw_matrix_data=NULL
         
         # dadesEST
-        dadesEST = NULL
-        aepsEST = NULL
+        student_data = NULL
+        transferred_credits = NULL
         if (!is.null(input$idp) && input$idp!="---") {
-          # JULIA 05/10/2023
-          # V1=userid, V3=sem, V4=rel, V11=ass, V12=nota
-          dadesEST=x[x[,1]==input$idp,c(3,4,11,12)]
-          colnames(dadesEST)=c('sem','rel','ass','nota')
+          student_data=student_enrollment_data[student_enrollment_data$user_id==input$idp, c('relative_semester','subject_code','subject_mark')]
           
           # la última nota de cada asignatura
-          dadesEST=aggregate(dadesEST[,c('sem','rel','nota')],list(dadesEST$ass),function(x){return(x[length(x)])})
-          colnames(dadesEST)=c('ass','sem','rel','nota')
+          student_data=aggregate(student_data[,c('relative_semester','subject_mark')],list(student_data$subject_code),function(x){return(x[length(x)])})
+          colnames(student_data)=c('subject_code','relative_semester','subject_mark')
           
           # convalidades: és com una nota especial (només les incorporades!)
           #browser()
-          aepsEST=aeps[aeps$V1==input$idp & aeps$V4=="Reconeguda",c(2,4)]
-          colnames(aepsEST)=c('ass','nota')
+          transferred_credits=transferred_credits_data[transferred_credits_data$user_id==input$idp & transferred_credits_data$status=="Reconeguda",c('subject_code','status')]
+          colnames(transferred_credits)=c('subject_code','subject_mark')
           
           # si té convalidades
-          if (nrow(aepsEST)>0) {
+          if (nrow(transferred_credits)>0) {
             
-            aepsEST$sem="N/A"
-            aepsEST$rel=0
-            aepsEST=aepsEST[,match(names(dadesEST),names(aepsEST))]
+            transferred_credits$relative_semester="N/A"
+            transferred_credits=transferred_credits[,match(names(student_data),names(transferred_credits))]
             
             # afegir les convalidades a les ja matriculades
-            dadesEST=rbind(aepsEST,dadesEST)
+            student_data=rbind(transferred_credits,student_data)
           } else {
-            aepsEST=NULL
+            transferred_credits=NULL
           }
           # JULIA 29/08/2023 mantener el semestre absoluto
-          #dadesEST$sem=NULL
+          #student_data$sem=NULL
         }
         
         # Asignatura TFM es la que té tipus T
-        ASSTFM <- dadesASS %>% filter(type == "T") %>% pull(ass) 
+        final_project_code <- subjects_data %>% filter(type == "T") %>% pull(subject_code) 
         
         # Agrupem el resultat
         return (list(
           # JULIA 05/10/2024
-          #x = x,
-          idps = idps,
-          ASSTFM = ASSTFM,
-          tipologia = tipologia,
-          dadesASS = dadesASS,
-          dadesEST = dadesEST, aepsEST=aepsEST,
-          noms = noms,
-          matr = matr,
-          Dsol = Dsol, Dpop = Dpop, Ddif = Ddif, Dreq = Dreq, Dabs = Dabs
+          available_student_ids = available_student_ids,
+          final_project_code = final_project_code,
+          subject_type = subject_type,
+          subjects_data = subjects_data,
+          student_data = student_data,
+          transferred_credits=transferred_credits,
+          subject_names = subject_names,
+          subject_overlap_data = subject_overlap_data,
+          difficulty_distance_matrix = difficulty_distance_matrix, 
+          popularity_distance_matrix = popularity_distance_matrix, 
+          prerequisite_distance_matrix = prerequisite_distance_matrix, 
+          overlap_distance_matrix = overlap_distance_matrix, 
+          semester_distance_matrix = semester_distance_matrix
         ))
       })  
       
       output$graf_hover_info <- renderUI({
         #print("graf_hover_info")
         hovered <- NULL
-        if(!is.null(input$graf_hover)) hovered <- asignatura_posicio(input$graf_hover)
+        if(!is.null(input$graf_hover)) hovered <- find_closest_subject(input$graf_hover)
         if(is.null(hovered)) return (NULL)
-        hoveredList$ass <- hovered$ass
+        hovered_list$subject_code <- hovered$subject_code
         # print("hovered")
         # print(hovered)
-        dadesGrau <- dadesGrau()
-        hovered$tipologia <- asignatura_tipologia(lang, dadesGrau, hovered)
-        hovered$name <- asignatura_nom(lang, dadesGrau, hovered)
-        html = asignatura_hover(input, hovered)
+        degree_data <- degree_data()
+        hovered$subject_type <- get_subject_type(language, degree_data, hovered)
+        hovered$name <- get_subject_name(language, degree_data, hovered)
+        html = create_subject_hover_info(input, hovered)
         return(html)
       })
       
@@ -191,18 +185,17 @@ informaticaServer <- function(id, lang) {
       # Gràfic del mapa asignatures -------------------------------------------------------
       
       output$grafic=renderPlot({
-        dadesGrau = dadesGrau()
+        degree_data = degree_data()
         # JULIA 05/10/2024
-        #x = dadesGrau$x
-        idps = dadesGrau$idps
-        ASSTFM = dadesGrau$ASSTFM
-        dadesASS =  dadesGrau$dadesASS
-        dadesEST = dadesGrau$dadesEST
+        available_student_ids = degree_data$available_student_ids
+        final_project_code = degree_data$final_project_code
+        subjects_data =  degree_data$subjects_data
+        student_data = degree_data$student_data
         
         #browser()
         
         # tots els parells d'assignatures ordenades per codi
-        ass=sort(dadesASS$ass)
+        subjects=sort(subjects_data$subject_code)
         # JULIÀ 17/10/2023 treure ass2
         #ass2=expand.grid(ass1 = ass, ass2 = ass)
         #if(nrow((ass2))==0) return(NULL)
@@ -210,169 +203,163 @@ informaticaServer <- function(id, lang) {
         # print(head(ass2))
         
         # JULIA 23/12/2022 adaptar la matriz de solapamientos
-        if (is.null(dadesGrau$Dsol)) return(NULL)
-        Dsol=dadesGrau$Dsol
+        if (is.null(degree_data$overlap_distance_matrix)) return(NULL)
+        overlap_distance_matrix=degree_data$overlap_distance_matrix
         
         # JULIA 23/12/2022 adaptar la matriz de popularidad relativa
-        if (is.null(dadesGrau$Dpop)) return(NULL)
-        Dpop=dadesGrau$Dpop
+        if (is.null(degree_data$popularity_distance_matrix)) return(NULL)
+        popularity_distance_matrix=degree_data$popularity_distance_matrix
         
         # JULIA 23/12/2022 adaptar la matriz de dificultad
-        if (is.null(dadesGrau$Ddif)) return(NULL)
-        Ddif = dadesGrau$Ddif
+        if (is.null(degree_data$difficulty_distance_matrix)) return(NULL)
+        difficulty_distance_matrix = degree_data$difficulty_distance_matrix
         
         # JULIA 24/12/2022 adaptar la matriz de prerequisitos
-        if (is.null(dadesGrau$Dreq)) return(NULL)
-        Dreq = dadesGrau$Dreq
+        if (is.null(degree_data$prerequisite_distance_matrix)) return(NULL)
+        prerequisite_distance_matrix = degree_data$prerequisite_distance_matrix
         
         # JULIA 27/12/2022 adaptar la matriz con el plan de estudios 
-        if (is.null(dadesGrau$Dabs)) return(NULL)
-        Dabs=dadesGrau$Dabs
+        if (is.null(degree_data$semester_distance_matrix)) return(NULL)
+        semester_distance_matrix=degree_data$semester_distance_matrix
         
         # !!! RENDER PLOT
         # creació del gràfic, de moment és un plot
-        totOK=!is.null(input$dificultat) &&
-          !is.null(input$semestre) &&
-          !is.null(input$requisit) &&
-          !is.null(input$popularitat) &&
+        all_inputs_valid=!is.null(input$difficulty) &&
+          !is.null(input$semester) &&
+          !is.null(input$prerequisite) &&
+          !is.null(input$popularity) &&
           !is.null(input$overlap)
         
-        #print(paste("dificultat:", !is.null(input$dificultat)))
-        #print(paste("semestre:", !is.null(input$semestre)))
-        #print(paste("requisit:", !is.null(input$requisit)))
-        #print(paste("popularitat:", !is.null(input$popularitat)))
-        #print(paste("overlap:", !is.null(input$overlap)))
-        #print(paste("idp:", !is.null(input$idp)))
-        #print(paste("indicador:", !is.null(input$indicador)))
-        #print(paste("totOk:", totOK))
-        
-        if (totOK) {
-          dificultat <- input$dificultat
-          semestre <- input$semestre
-          requisit <- input$requisit
-          popularitat <- input$popularitat
+        if (all_inputs_valid) {
+          difficulty <- input$difficulty
+          semester <- input$semester
+          prerequisite <- input$prerequisite
+          popularity <- input$popularity
           overlap <- input$overlap 
           
           # JULIA 24/12/2022 normalizar los pesos
-          WD=5.0
+          weight_denominator=5.0
           
-          resultat <<- matrix(
+          subject_distance_matrix <<- matrix(
             # JULIA 23/12/2022 cambiar matrices
-            (dificultat/WD)*Ddif +
-              (overlap/WD)*Dsol + 
-              (requisit/WD)*Dreq +
-              (popularitat/WD)*Dpop +
-              (semestre/WD)*Dabs,
-            length(ass),length(ass))
+            (difficulty/weight_denominator)*difficulty_distance_matrix +
+              (overlap/weight_denominator)*overlap_distance_matrix + 
+              (prerequisite/weight_denominator)*prerequisite_distance_matrix +
+              (popularity/weight_denominator)*popularity_distance_matrix +
+              (semester/weight_denominator)*semester_distance_matrix,
+            length(subjects),length(subjects))
           
-          if (!is.null(resultat)) {
+          if (!is.null(subject_distance_matrix)) {
             # JULIA 23/12/2022 forzar una distancia mínima
             # añadimos un "pequeño" margen a los ceros
             set.seed(1)
-            resultat=apply(resultat,c(1,2),function(x){ifelse(x>0,x,runif(1,0,0.1))})
+            subject_distance_matrix=apply(subject_distance_matrix,c(1,2),function(x){ifelse(x>0,x,runif(1,0,0.1))})
             # JULIA 24/12/2022 forzar una separación para poder generar cuadrícula
-            resultat=resultat+1
+            subject_distance_matrix=subject_distance_matrix+1
             
             # crear mapeado 2D de la matriz de distancias resultante
             # JULIA 07/01/2023 se podrían probar otros algoritmos
-            q <- sammon(resultat, trace=F)
-            #q <- isoMDS(resultat, k=2)
+            subject_coordinates <- sammon(subject_distance_matrix, trace=F)
+            #subject_coordinates <- isoMDS(subject_distance_matrix, k=2)
             
             # corrección manual tomando como referencia el TF
             # el TF debería quedar lo más a la derecha y arriba posible
             # !!!
-            TF=which(ass==ASSTFM)
-            r=range(q$points[,1])
-            if ((q$points[TF,1]-r[1])/(r[2]-r[1])<0.5) {
-              q$points[,1]=-q$points[,1]
+            final_project_index=which(subjects==final_project_code)
+            coordinate_range=range(subject_coordinates$points[,1])
+            if ((subject_coordinates$points[final_project_index,1]-coordinate_range[1])/(coordinate_range[2]-coordinate_range[1])<0.5) {
+              subject_coordinates$points[,1]=-subject_coordinates$points[,1]
             }
-            r=range(q$points[,2])
-            if ((q$points[TF,2]-r[1])/(r[2]-r[1])<0.5) {
-              q$points[,2]=-q$points[,2]
+            coordinate_range=range(subject_coordinates$points[,2])
+            if ((subject_coordinates$points[final_project_index,2]-coordinate_range[1])/(coordinate_range[2]-coordinate_range[1])<0.5) {
+              subject_coordinates$points[,2]=-subject_coordinates$points[,2]
             }
             
-            q <- as.data.frame(q$points)
-            q$ass=ass
+            subject_coordinates <- data.frame(
+              x = subject_coordinates$points[,1],
+              y = subject_coordinates$points[,2],
+              subject_code = subjects
+            )
             
-            # afegir dades de les assignatures
-            q <- merge(q,dadesASS,'ass',all.x=T)
-            #q$TFM=as.factor(ifelse(q$ass==ASSTFM,0,0))
+            subject_coordinates <- merge(subject_coordinates, subjects_data, by='subject_code', all.x=T)
+            
+            #subject_coordinates$TFM=as.factor(ifelse(subject_coordinates$ass==final_project_code,0,0))
             
             # afegir dades estudiant
             if (!is.null(input$idp)) {
               if (input$idp!="---") {
-                q <- merge(q,dadesEST,'ass',all.x=T)
-                q[is.na(q$nota),'nota']=translate(lang, "Pending")
+                subject_coordinates <- merge(subject_coordinates, student_data, 'subject_code', all.x=T)
+                subject_coordinates[is.na(subject_coordinates$subject_mark),'subject_mark']=translate(language, "Pending")
               } else {
-                q$nota=translate(lang, "Pending")
+                subject_coordinates$subject_mark=translate(language, "Pending")
               }
             } else {
-              q$nota=translate(lang, "Pending")
+              subject_coordinates$subject_mark=translate(language, "Pending")
             }
             
             # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
             # ordenado
-            q$full_name=dadesGrau$noms[[paste0("name_",lang)]]
-            q$full_name=paste0(q$full_name," (",q$abrv,")")
+            subject_coordinates$full_name=degree_data$subject_names[[paste0("name_",language)]]
+            subject_coordinates$full_name=paste0(subject_coordinates$full_name," (",subject_coordinates$subject_abbreviation,")")
             
             # JULIA 28/12/2022 esto va lento
             #asignatures <- tibble(
-            #  ass = dadesGrau$noms[["ass"]],
-            #  noms = dadesGrau$noms[[paste0("name_",lang)]]
+            #  ass = degree_data$subject_names[["ass"]],
+            #  noms = degree_data$subject_names[[paste0("name_",language)]]
             #)
-            #q <- left_join (q, asignatures) %>%
+            #subject_coordinates <- left_join (subject_coordinates, asignatures) %>%
             #  mutate(full_name = paste0(abrv, ": ", noms))
             
-            # glimpse(q)
+            # glimpse(subject_coordinates)
             
             # Controlar estats (Controlar estados)
             # JULIA 09/01/2023 cambiar full_name por abrv
-            R1 <-  q %>% filter(ass %in% recomendedList$ass[1]) %>% pull(abrv) %>% paste0("R1 ", .)
-            R2 <-  q %>% filter(ass %in% recomendedList$ass[2]) %>% pull(abrv) %>% paste0("R2 ", .)
-            R3 <-  q %>% filter(ass %in% recomendedList$ass[3]) %>% pull(abrv) %>% paste0("R3 ", .)
-            R4 <-  q %>% filter(ass %in% recomendedList$ass[4]) %>% pull(abrv) %>% paste0("R4 ", .)
-            R5 <-  q %>% filter(ass %in% recomendedList$ass[5]) %>% pull(abrv) %>% paste0("R5 ", .)
-            R6 <-  q %>% filter(ass %in% recomendedList$ass[6]) %>% pull(abrv) %>% paste0("R6 ", .)
-            q <- q %>% 
-              mutate(nota = ifelse(ass %in% recomendedList$ass[1], R1, nota)) %>%
-              mutate(nota = ifelse(ass %in% recomendedList$ass[2], R2, nota)) %>%
-              mutate(nota = ifelse(ass %in% recomendedList$ass[3], R3, nota)) %>%
-              mutate(nota = ifelse(ass %in% recomendedList$ass[4], R4, nota)) %>%
-              mutate(nota = ifelse(ass %in% recomendedList$ass[5], R5, nota)) %>%
-              mutate(nota = ifelse(ass %in% recomendedList$ass[6], R6, nota)) %>% 
-              mutate(nota = ifelse(ass %in% descartaList$ass, translate(lang, "Discarded"), nota)) %>% 
-              mutate(nota = ifelse(ass %in% selectedList$ass, translate(lang, "Selected"), nota))
+            R1 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[1]) %>% pull(subject_abbreviation) %>% paste0("R1 ", .)
+            R2 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[2]) %>% pull(subject_abbreviation) %>% paste0("R2 ", .)
+            R3 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[3]) %>% pull(subject_abbreviation) %>% paste0("R3 ", .)
+            R4 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[4]) %>% pull(subject_abbreviation) %>% paste0("R4 ", .)
+            R5 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[5]) %>% pull(subject_abbreviation) %>% paste0("R5 ", .)
+            R6 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[6]) %>% pull(subject_abbreviation) %>% paste0("R6 ", .)
+            subject_coordinates <- subject_coordinates %>% 
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[1], R1, subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[2], R2, subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[3], R3, subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[4], R4, subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[5], R5, subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[6], R6, subject_mark)) %>% 
+              mutate(subject_mark = ifelse(subject_code %in% discarded_list$subject_code, translate(language, "Discarded"), subject_mark)) %>% 
+              mutate(subject_mark = ifelse(subject_code %in% selected_list$subject_code, translate(language, "Selected"), subject_mark))
             
-            if (!is.null(input$sem1o2)) {
-              q <- q %>% 
-                mutate(nota = ifelse(!bsem %in% c(0,input$sem1o2), translate(lang,"Not available"), nota))
+            if (!is.null(input$selected_semester)) {
+              subject_coordinates <- subject_coordinates %>% 
+                mutate(subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester), translate(language,"Not available"), subject_mark))
             } else { 
-              q <- q %>% 
-                mutate(nota = ifelse(!bsem %in% c(0,1), translate(lang,"Not available"), nota))
+              subject_coordinates <- subject_coordinates %>% 
+                mutate(subject_mark = ifelse(!semester_number %in% c(0,1), translate(language,"Not available"), subject_mark))
             }
             
             
             # forzar y ordenar todas las notas posibles
             # incloure les convalidades (Reconeguda)
-            q[q$nota %in% c('A','NO','EX','M'),'nota']=translate(lang, "Pass")
-            q[q$nota %in% c('NP','SU'),'nota']=translate(lang, "Fail")
-            q[q$nota %in% c('Reconeguda'),'nota']=translate(lang, "Transfer")
+            subject_coordinates[subject_coordinates$subject_mark %in% c('A','NO','EX','M'),'subject_mark']=translate(language, "Pass")
+            subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Fail")
+            subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transfer")
             
-            q$nota=factor(q$nota,c(translate(lang, "Pass"),
-                                   translate(lang, "Fail"),
-                                   translate(lang, "Pending"),
-                                   translate(lang, "Not available"),
-                                   translate(lang, "Transfer"),
-                                   translate(lang, "Discarded"),
-                                   translate(lang, "Selected"),
+            subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(translate(language, "Pass"),
+                                   translate(language, "Fail"),
+                                   translate(language, "Pending"),
+                                   translate(language, "Not available"),
+                                   translate(language, "Transfer"),
+                                   translate(language, "Discarded"),
+                                   translate(language, "Selected"),
                                    R1,R2,R3,R4,R5,R6))
             # JULIA 24/12/2022 cambio pendiente de la paleta de colores
             #pal <- c("#c5c4c4", "#FF7D87", "#9aebfd", "#fdf6f6", "#e0e0e0", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
-            pal <- c("#73edff", "#FF7D87", "#c5c4c4", "#fdf6f6", "#D8F6FF", "#ccbb11", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
+            color_palette <- c("#73edff", "#FF7D87", "#c5c4c4", "#fdf6f6", "#D8F6FF", "#ccbb11", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
             
             # graf
             colorT="black"
-            gg=ggplot(q, aes(x=V1,y=V2,label=abrv)) +
+            subject_plot=ggplot(subject_coordinates, aes(x=x,y=y,label=subject_abbreviation)) +
               theme_void() +
               theme(
                 panel.background=element_rect(fill=NA, color=NA)
@@ -383,47 +370,47 @@ informaticaServer <- function(id, lang) {
               # color de l'àrea segons la nota
               # JULIA 07/01/2023 cambiar position a right
               if (input$bubbles) {
-                gg = gg +
-                  geom_voronoi_tile(aes(x=V1,y=V2,fill=nota,group=-1L), colour="white",max.radius=input$bubbles) +
-                  scale_fill_manual(values=pal, drop = F)+guides(colour="none")+theme(legend.position="right") +
-                  labs(fill = translate(lang, "Subject status"))
+                subject_plot = subject_plot +
+                  geom_voronoi_tile(aes(x=x,y=y,fill=subject_mark,group=-1L), colour="white",max.radius=input$bubbles) +
+                  scale_fill_manual(values=color_palette, drop = F)+guides(colour="none")+theme(legend.position="right") +
+                  labs(fill = translate(language, "Subject status"))
               } else {
-                gg = gg + 
-                  geom_voronoi_tile(aes(x=V1,y=V2,fill=nota,group=-1L), colour="white") +
-                  scale_fill_manual(values=pal, drop = F)+guides(colour="none")+theme(legend.position="right") +
-                  labs(fill = translate(lang, "Subject status"))
+                subject_plot = subject_plot + 
+                  geom_voronoi_tile(aes(x=x,y=y,fill=subject_mark,group=-1L), colour="white") +
+                  scale_fill_manual(values=color_palette, drop = F)+guides(colour="none")+theme(legend.position="right") +
+                  labs(fill = translate(language, "Subject status"))
               }
             } else {
               # color de l'àrea en funció de l'indicador
             }
             
             # afegir les assignatures
-            q$quines=1
-            if (!is.null(input$tipologia)) {
-              q <- asignatura_quines(lang, dadesGrau, q, input)
+            subject_coordinates$selected_subjects=1
+            if (!is.null(input$subject_type)) {
+              subject_coordinates <- filter_subjects_by_type(language, degree_data, subject_coordinates, input)
             }
-            if (!is.null(input$buscar) && str_length(input$buscar) > 0) {
-              q <- asignatura_buscar(lang, dadesGrau, q, input)
+            if (!is.null(input$search_subject) && str_length(input$search_subject) > 0) {
+              subject_coordinates <- search_subjects(language, degree_data, subject_coordinates, input)
             }
             
             # JULIA 20/12/2022 forzar que aparezcan todas las asignaturas
             # cuando se seleccionan las asignaturas a matricular no se
             # muestran los "centros" de las recomendadas, pero solo si la
             # selección de nombre de asignatura está vacía
-            if (!is.null(input$tipologia) & is.null(input$buscar)) {
-              if (input$tipologia==translate(lang, "All")) {
-                q$quines=1
+            if (!is.null(input$subject_type) & is.null(input$search_subject)) {
+              if (input$subject_type==translate(language, "All")) {
+                subject_coordinates$selected_subjects=1
               }
             }
             
-            qq = q[q$nota==translate(lang, "Pending") | q$quines==1,]
+            filtered_subject_coordinates = subject_coordinates[subject_coordinates$subject_mark==translate(language, "Pending") | subject_coordinates$selected_subjects==1,]
             # JULIA 07/01/2023 cambiar a 1 columna en vertical
-            gg <- gg +
-              geom_point(data = qq, aes(alpha=ifelse(quines==1,1,0.72)), shape = 19, size = 2, colour = colorT) +
+            subject_plot <- subject_plot +
+              geom_point(data = filtered_subject_coordinates, aes(alpha=ifelse(selected_subjects==1,1,0.72)), shape = 19, size = 2, colour = colorT) +
               guides(colour="none") + 
               guides(alpha="none") +
               guides(fill=guide_legend(ncol=1)) +
-              geom_text_repel(aes(alpha=ifelse(q$quines==1,1,0.72)),size=5,colour=colorT) +
+              geom_text_repel(aes(alpha=ifelse(subject_coordinates$selected_subjects==1,1,0.72)),size=5,colour=colorT) +
               theme(
                 legend.justification = "left",
                 legend.direction = "vertical",
@@ -433,10 +420,10 @@ informaticaServer <- function(id, lang) {
             
             # guardamos el mapa para hover, etc.
             #print("save qQ")
-            qQ <<- q
+            subject_positions <<- subject_coordinates
             
             # show map
-            gg
+            subject_plot
           }
         }
         
@@ -448,99 +435,93 @@ informaticaServer <- function(id, lang) {
       # Gràfic del calendari --------------------------------------------------------------
       
       output$cal=renderPlot({
-        dadesGrau = dadesGrau()
-        lli=NULL
-        matr=NULL
-        a <- !is.null(selectedList$ass[1]) || 
-          !is.null(selectedList$ass[2]) ||
-          !is.null(selectedList$ass[3]) ||
-          !is.null(selectedList$ass[4]) || 
-          !is.null(selectedList$ass[5]) || 
-          !is.null(selectedList$ass[6])
+        degree_data = degree_data()
+        submissions=NULL
+        activity_deadline_calendar=NULL
+        has_selected_subjects <- !is.null(selected_list$subject_code[1]) || 
+          !is.null(selected_list$subject_code[2]) ||
+          !is.null(selected_list$subject_code[3]) ||
+          !is.null(selected_list$subject_code[4]) || 
+          !is.null(selected_list$subject_code[5]) || 
+          !is.null(selected_list$subject_code[6])
         workload <- if(!is.null(input$workload)){ input$workload } else{ 1 }
-        inputsOK <- !is.null(input$sem1o2) && a
+        inputsOK <- !is.null(input$selected_semester) && has_selected_subjects
         if (!inputsOK) return(NULL)
-        matr <- dadesGrau$matr
-        if (nrow(matr)==0) return(NULL)
+        activity_deadline_calendar <- degree_data$subject_overlap_data
+        if (nrow(activity_deadline_calendar)==0) return(NULL)
         
         # per cada activitat de cada assignatura nomes darrers N dies indicats 
-        for (i in 1:nrow(matr)) {
-          j=ncol(matr)
+        for (i in 1:nrow(activity_deadline_calendar)) {
+          j=ncol(activity_deadline_calendar)
           
           # buscar el primer 1 per la dreta
-          while (matr[i,j]==0) {
+          while (activity_deadline_calendar[i,j]==0) {
             j=j-1
           }
           # guardar els lliuraments
-          lli=rbind(lli,data.frame(subject_code=matr[i,1],dia=j-4,load=1))
+          submissions=rbind(submissions,data.frame(subject_code=activity_deadline_calendar[i,1],day_number=j-4,load=1))
           
           # "saltar" els dies indicats
           j=j-workload
           
           # treure els 1 anteriors
-          while ((matr[i,j]==1) && (j>4)) {
-            matr[i,j]=0
+          while ((activity_deadline_calendar[i,j]==1) && (j>4)) {
+            activity_deadline_calendar[i,j]=0
             j=j-1
           }
         }
         
         # acumular les activitats de cada assignatura
-        acum=aggregate(matr[,-(1:4)],list(matr$subject_code), sum)
-        # print("colnames(acum)")
-        colnames(acum)[1]='subject_code'
+        accumulated_activities=aggregate(activity_deadline_calendar[,-(1:4)],list(activity_deadline_calendar$subject_code), sum)
+        colnames(accumulated_activities)[1]='subject_code'
         
         # format long, recuperant el dia
-        res=gather(acum,key='dia',value='load',-subject_code)
-        res$dia=as.numeric(substring(res$dia,2))
-        res=res[order(res$subject_code,res$dia),]
-        quines=unique(res$subject_code)
-        res$subject_code=factor(res$subject_code, levels=quines)
+        accumulated_activities_long=gather(accumulated_activities,key='day_number',value='load',-subject_code)
+        accumulated_activities_long$day_number=as.numeric(substring(accumulated_activities_long$day_number,2))
+        accumulated_activities_long=accumulated_activities_long[order(accumulated_activities_long$subject_code,accumulated_activities_long$day_number),]
+        unique_subject_codes=unique(accumulated_activities_long$subject_code)
+        accumulated_activities_long$subject_code=factor(accumulated_activities_long$subject_code, levels=unique_subject_codes)
         
         # calculem la carrega mitjana per dia 
-        perfil=aggregate(res$load,list(res$dia),sum)$x
+        daily_workload=aggregate(accumulated_activities_long$load,list(accumulated_activities_long$day_number),sum)$x
         
-        # OLD: Average daily activities;  load=round(mean(perfil)*100)/100
-        load <- sum(perfil > 0)
-        load_prop <- round(100 * (load / length(perfil)), 2)
+        # OLD: Average daily activities;  load=round(mean(daily_workload)*100)/100
+        active_days <- sum(daily_workload > 0)
+        active_days_prop <- round(100 * (active_days / length(daily_workload)), 2)
         
-        # OLD: Percentage of overlapping deadlines: load2=round((sum(perfil>1)/sum(perfil>0))*100)/100
-        load2 <- sum(perfil > 1)
-        load2_prop <- round(100 * (load2 / length(perfil)), 2)
+        # OLD: Percentage of overlapping deadlines: load2=round((sum(daily_workload>1)/sum(daily_workload>0))*100)/100
+        overlap_days <- sum(daily_workload > 1)
+        overlap_days_prop <- round(100 * (overlap_days / length(daily_workload)), 2)
         
         # Preparem dates
-        inici_sem <- inici_semestres()
+        semester_dates <- get_semester_start_dates()
         # 09/02/2023 JULIA: no funciona para el segundo semestre !!!
-        #inici <- if_else(input$sem1o2 == 1, inici_sem$sem1, inici_sem$sem2)
-        inici <- inici_sem$sem1
-        asignatures <- tibble(
-          ass = dadesGrau$noms[["ass"]],
-          # JULIA 30/12/2022 cambiar noms por full_name
-          full_name = dadesGrau$noms[[paste0("name_",lang)]]
+        #semester_start_date <- if_else(input$selected_semester == 1, inici_sem$first_semester_start, inici_sem$second_semester_start)
+        semester_start_date <- semester_dates$first_semester_start
+        subjects_info <- tibble(
+          subject_code = degree_data$subject_names[["subject_code"]],
+          full_name = degree_data$subject_names[[paste0("name_",language)]]
         ) %>% 
-          left_join(dadesGrau$dadesASS, by = "ass") %>% 
-          mutate(full_name = paste0(full_name," (",abrv,")"))
-        res <- as_tibble(res) %>% 
-          mutate(dia_semestre = (inici + dia)) %>% 
-          left_join(asignatures, by = c("subject_code" = "ass"))
-        lli <- as_tibble(lli) %>% 
+          left_join(degree_data$subjects_data, by = "subject_code") %>% 
+          mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
+        accumulated_activities_long <- as_tibble(accumulated_activities_long) %>% 
+          mutate(semester_date = (semester_start_date + day_number)) %>% 
+          left_join(subjects_info, by = "subject_code")
+        submissions <- as_tibble(submissions) %>% 
           mutate(
-            dia_semestre = (inici + dia),
-            subject_code = factor(lli$subject_code, levels = quines),
+            semester_date = (semester_start_date + day_number),
+            subject_code = factor(subject_code, levels = unique_subject_codes)
           ) %>% 
-          left_join(asignatures, by = c("subject_code" = "ass"))
+          left_join(subjects_info, by = "subject_code")
         
         # fem el gràfic
-        # print("dades gràfic")
-        # print(res)
-        # print("dades asignatures")
-        # print(lli)
-        gg <- res %>% ggplot(aes(x = dia_semestre, y = load)) +
+        gg <- accumulated_activities_long %>% ggplot(aes(x = semester_date, y = load)) +
           geom_col( width = 0.5, alpha = 0.28, fill = "#4875fb") +
-          geom_col(data = lli, aes(x = dia_semestre, y = load), fill = "#4875fb", width = 0.72, alpha = 1) +
+          geom_col(data = submissions, aes(x = semester_date, y = load), fill = "#4875fb", width = 0.72, alpha = 1) +
           scale_y_continuous(breaks = seq(0, 8)) +
           scale_x_date(
             name = "Dia",
-            limits = c((inici), (inici + 135)),
+            limits = c((semester_start_date), (semester_start_date + 135)),
             date_labels = "%d/%m", 
             date_breaks = "1 weeks",
             sec.axis = dup_axis(
@@ -549,9 +530,9 @@ informaticaServer <- function(id, lang) {
             )
           ) +
           labs(
-            fill = translate(lang, "Subjects:"), 
+            fill = translate(language, "Subjects:"), 
             x = NULL,
-            y = translate(lang, "Number of concurrent activities")
+            y = translate(language, "Number of concurrent activities")
           ) +
           theme(
             plot.title=element_text(size=24),
@@ -565,93 +546,88 @@ informaticaServer <- function(id, lang) {
         gg <- gg + 
           labs(
             title=paste0(
-              translate(lang, "Total number of activities"),": ",
-              nrow(lli),"\n",
-              translate(lang, "Average daily activities"),": ",
-              load," (", load_prop,"%)\n",
-              translate(lang, "Percentage of overlapping (days with more than 1 activity)"),": ",
-              load2, " (", load2_prop,"%)\n"
+              translate(language, "Total number of activities"),": ",
+              nrow(submissions),"\n",
+              translate(language, "Average daily activities"),": ",
+              active_days," (", active_days_prop,"%)\n",
+              translate(language, "Percentage of overlapping (days with more than 1 activity)"),": ",
+              overlap_days, " (", overlap_days_prop,"%)\n"
             )
           )
         
-        #print("numero_asignatures")
-        #print(numero_asignatures(selectedList))
-        
-        (gg2 / gg) + plot_layout(heights = c(numero_asignatures(selectedList), 2))
+        (gg2 / gg) + plot_layout(heights = c(count_selected_subjects(selected_list), 2))
         
       }, height = 800)
       
       
       # Taula de l'expedient de l'estudiant -----------------------
-      output$expedient=renderTable({
+      output$academic_record=renderTable({
         # JULIA 19/10/2023 afegir nom assignatura, capçalera amb idioma
-        dadesGrauOUT = dadesGrau()
-        if (!is.null(dadesGrauOUT$dadesEST)) {
-          dadesGrauOUT$dadesEST=merge(dadesGrauOUT$dadesEST,dadesGrauOUT$noms,'ass')
-          temp=dadesGrauOUT$dadesEST[,c('sem',paste0('name_',lang),'nota')]
-          temp=temp[order(temp$sem),]
+        degree_dataOUT = degree_data()
+        if (!is.null(degree_dataOUT$student_data) && nrow(degree_dataOUT$student_data) > 0) {
+          academic_record_data=merge(degree_dataOUT$student_data, degree_dataOUT$subject_names, by.x='subject_code', by.y='subject_code')
+          academic_record_data=academic_record_data[,c('relative_semester', paste0('name_',language), 'subject_mark')] 
+          academic_record_data=academic_record_data[order(academic_record_data$relative_semester),]
           # JULIÀ 07/11/2023 notas
-          temp[temp$nota=="M",'nota']=translate(lang, "With Honors")
-          temp[temp$nota=="EX",'nota']=translate(lang, "Excellent")
-          temp[temp$nota=="NO",'nota']=translate(lang, "Good")
-          temp[temp$nota=="A",'nota']=translate(lang, "Satisfactory")
-          temp[temp$nota=="SU",'nota']=translate(lang, "Fail")
-          temp[temp$nota=="NP",'nota']=translate(lang, "Withdrawal")
+          academic_record_data[academic_record_data$subject_mark=="M",'subject_mark']=translate(language, "With Honors")
+          academic_record_data[academic_record_data$subject_mark=="EX",'subject_mark']=translate(language, "Excellent")
+          academic_record_data[academic_record_data$subject_mark=="NO",'subject_mark']=translate(language, "Good")
+          academic_record_data[academic_record_data$subject_mark=="A",'subject_mark']=translate(language, "Satisfactory")
+          academic_record_data[academic_record_data$subject_mark=="SU",'subject_mark']=translate(language, "Fail")
+          academic_record_data[academic_record_data$subject_mark=="NP",'subject_mark']=translate(language, "Withdrawal")
           # falta traduir les convalidacions
-          temp[temp$nota=="Reconeguda",'nota']=translate(lang, "Transfer")
-          # traduir els noms dels camps 
-          colnames(temp)=c(translate(lang, "Semester"), translate(lang, "Subject"), translate(lang, "Mark"))
+          academic_record_data[academic_record_data$subject_mark=="Reconeguda",'subject_mark']=translate(language, "Transfer")
+          colnames(academic_record_data)=c(translate(language, "Semester"), translate(language, "Subject"), translate(language, "Mark")) 
           # mostrar la taula tal qual
-          temp
+          academic_record_data
         }
       }, bordered=T, digits=0)
       
       
       # Resum de la matricula ------------------------------------
       output$uiEnrollment=renderUI({
-        if(step$val < 4) {
+        if(enrollment_step$current_step < 4) {
           return()
         }
         ns <- session$ns
-        dadesGrau <- dadesGrau()
-        asignatures <- tibble(
-          ass = dadesGrau$noms[["ass"]],
-          # JULIA 30/12/2022 cambiar noms por full_name
-          full_name = dadesGrau$noms[[paste0("name_",lang)]]
+        degree_data <- degree_data()
+        subjects_info <- tibble(
+          subject_code = degree_data$subject_names[["subject_code"]],
+          full_name = degree_data$subject_names[[paste0("name_",language)]]
         ) %>% 
-          left_join(dadesGrau$dadesASS, by = "ass") %>% 
-          mutate(full_name = paste0(full_name," (",abrv,")"))
-        descartaStr <- asignatures %>% 
-          filter(ass %in% descartaList$ass) %>% 
+          left_join(degree_data$subjects_data, by = "subject_code") %>% 
+          mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
+        descartaStr <- subjects_info %>% 
+          filter(subject_code %in% discarded_list$subject_code) %>% 
           pull(full_name)
-        recomanaStr <- asignatures %>% 
-          filter(ass %in% recomendedList$ass) %>% 
+        recomanaStr <- subjects_info %>% 
+          filter(subject_code %in% recommended_list$subject_code) %>% 
           pull(full_name)
-        seleccioStr <- asignatures %>% 
-          filter(ass %in% selectedList$ass) %>% 
+        seleccioStr <- subjects_info %>% 
+          filter(subject_code %in% selected_list$subject_code) %>% 
           pull(full_name)
         tagList(
-          h2(translate(lang, "¡Gracias por utilizar Visual Enrollment!")),
-          h3(translate(lang, "Tus preferencias y selección para la siguiente matricula")),
+          h2(translate(language, "¡Gracias por utilizar Visual Enrollment!")),
+          h3(translate(language, "Tus preferencias y selección para la siguiente matricula")),
           tags$ol(
-            tags$li(class="step0", translate(lang, "Discard"), p(paste(descartaStr, collapse = ", "))),
-            tags$li(class="step1", translate(lang, "Preferences"),
+            tags$li(class="step0", translate(language, "Discard"), p(paste(descartaStr, collapse = ", "))),
+            tags$li(class="step1", translate(language, "Preferences"),
                     div(
-                      translate(lang,"Difficulty:"), paste0(input$dificultat, "/5"),
+                      translate(language,"Difficulty:"), paste0(input$difficulty, "/5"),
                       br(),
-                      translate(lang, "Popularity:"),  paste0(input$popularitat, "/5"),
+                      translate(language, "Popularity:"),  paste0(input$popularity, "/5"),
                       br(),
-                      translate(lang, "Previous requirements:"),  paste0(input$requisit, "/5"),
+                      translate(language, "Previous requirements:"),  paste0(input$prerequisite, "/5"),
                       br(),
-                      translate(lang, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
+                      translate(language, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
                       br(),
                       br(),
                     )
             ),
-            tags$li(class="step2", translate(lang, "Recommendations"), p(paste(recomanaStr, collapse = ", "))),
-            tags$li(class="step3", translate(lang, "Selection"), p(paste(seleccioStr, collapse = ", "))),
+            tags$li(class="step2", translate(language, "Recommendations"), p(paste(recomanaStr, collapse = ", "))),
+            tags$li(class="step3", translate(language, "Selection"), p(paste(seleccioStr, collapse = ", "))),
           ),
-          actionButton(ns("screenshot"), translate(lang, "Download enrolment")),
+          actionButton(ns("screenshot"), translate(language, "Download enrolment")),
           NULL
         )
       })
@@ -659,30 +635,30 @@ informaticaServer <- function(id, lang) {
       
       # Cercar per tipologia o nom ----------------------------------------------------------------
       
-      output$uiTipologia=renderUI({
-        req(input$grau)
+      output$uiSubjectType=renderUI({
+        req(input$degree)
         ns <- session$ns
-        dadesGrau = dadesGrau()
-        tipologia <- dadesGrau$tipologia[[paste0("tipologia_",lang)]]
+        degree_data = degree_data()
+        subject_type <- degree_data$subject_type[[paste0("tipologia_",language)]]
         tagList(
           selectInput(
-            ns("tipologia"),
-            translate(lang, "Highlight each type of subject"),
-            choices = c(translate(lang, "All"), tipologia)
+            ns("subject_type"),
+            translate(language, "Highlight each type of subject"),
+            choices = c(translate(language, "All"), subject_type)
           )
         )
       })
       
-      output$uiBuscar=renderUI({
-        req(input$grau)
+      output$uiSearchSubject=renderUI({
+        req(input$degree)
         ns <- session$ns
-        dadesGrau = dadesGrau()
+        degree_data = degree_data()
         # JULIA 10/01/2023 cambiar noms por full_name
-        full_name <- dadesGrau$noms[[paste0("name_",lang)]]
+        full_name <- degree_data$subject_names[[paste0("name_",language)]]
         tagList(
           textInput(
-            ns("buscar"),
-            translate(lang, "Search subject"),
+            ns("search_subject"),
+            translate(language, "Search subject"),
           )
         )
       })
@@ -693,16 +669,16 @@ informaticaServer <- function(id, lang) {
       output$uiGrau=renderUI({
         ns <- session$ns
         selectInput(
-          ns("grau"),
-          translate(lang, "Choose degree"),
+          ns("degree"),
+          translate(language, "Choose degree"),
           choices=setNames(
             c(
               "INFORMATICA",
               "DATASCIENCE"
             ),
             c(
-              translate(lang,"Computer science degree"),
-              translate(lang,"Applied data science")
+              translate(language,"Computer science degree"),
+              translate(language,"Applied data science")
             )
           ),
           selected=1
@@ -713,8 +689,8 @@ informaticaServer <- function(id, lang) {
       output$uiSem=renderUI({
         ns <- session$ns
         selectInput(
-          ns("sem1o2"),
-          translate(lang, "Choose a semester:"),
+          ns("selected_semester"),
+          translate(language, "Choose a semester:"),
           choices=c(1,2),
           selected=1
         )
@@ -723,24 +699,24 @@ informaticaServer <- function(id, lang) {
       # !!! JULIA 24/12/2022 filtrar los idps por tutor
       # falta decidir los idps por tutor y la clave de cada uno
       output$uiEst=renderUI({
-        if(!is.null(input$grau)) {
-          dadesGrau = dadesGrau()
+        if(!is.null(input$degree)) {
+          degree_data = degree_data()
           # JULIÀ 17/10/2023 per defecte la llista d'idps disponibles
-          idps = dadesGrau$idps
+          student_choices = degree_data$available_student_ids
           # JULIÀ 24/10/2023 de moment treiem lo dels tutors
           #claveTutor = claveTutor()
           #if (claveTutor=="1A2B3C4D5E6F") {
-          #  idps = c("XXX")
+          #  student_choices = c("XXX")
           #}
           #if (claveTutor=="DEMOECTEL2023") {
-          #  idps = c("00000000000000000000000000000000")
+          #  student_choices = c("00000000000000000000000000000000")
           #}
           
           ns <- session$ns
           selectInput(
             ns("idp"),
-            translate(lang, "Choose a student:"),
-            choices = idps,
+            translate(language, "Choose a student:"),
+            choices = student_choices,
             selected = input$idp
           )
         } else{
@@ -752,46 +728,41 @@ informaticaServer <- function(id, lang) {
       
       observeEvent(input$graf_click, {
         #print("input$graf_click")
-        if(!is.null(input$graf_click)) clicked <- asignatura_posicio(input$graf_click)
-        if(!is.null(clicked)) clickedList$ass <- unique(c(clicked$ass, clickedList$ass))
+        if(!is.null(input$graf_click)) clicked <- find_closest_subject(input$graf_click)
+        if(!is.null(clicked)) clicked_list$subject_code <- unique(c(clicked$subject_code, clicked_list$subject_code))
         # JULIA 18/12/2022 afegir protecció 
         if (is.null(clicked)) return(NULL)
-        #print(step$val)
-        if(step$val == 0) {
-          descartable <- !(clicked$ass %in% selectedList$ass) &&
-            clicked$nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Discarded"))
+        if(enrollment_step$current_step == 0) {
+          descartable <- !(clicked$subject_code %in% selected_list$subject_code) &&
+            clicked$subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Discarded"))
           if(descartable) { 
-            if(length(descartaList$ass)>0 && clickedList$ass[[1]] %in% descartaList$ass) {
-              # print(paste0("input$graf_click desconvalida clicked ",clickedList$ass[[1]]))
-              descartaList$ass <- descartaList$ass[ !descartaList$ass %in% clickedList$ass[[1]] ]
+            if(length(discarded_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% discarded_list$subject_code) {
+              discarded_list$subject_code <- discarded_list$subject_code[ !discarded_list$subject_code %in% clicked_list$subject_code[[1]] ]
             } else {
-              # print(paste0("input$graf_click convalida clicked ",clickedList$ass[[1]]))
-              descartaList$ass <- unique(c(clickedList$ass[[1]], descartaList$ass))
+              discarded_list$subject_code <- unique(c(clicked_list$subject_code[[1]], discarded_list$subject_code))
             }
           }
         }
-        if(step$val > 1) {
-          matriculable <- step$val != 0 && !(clicked$ass %in% descartaList$ass) 
-          matriculable <- matriculable & (clicked$nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Selected")))
-          matriculable <- matriculable | str_detect(clicked$nota, "^(R1|R2|R3|R4|R5|R6)")
+        if(enrollment_step$current_step > 1) {
+          matriculable <- enrollment_step$current_step != 0 && !(clicked$subject_code %in% discarded_list$subject_code) 
+          matriculable <- matriculable & (clicked$subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Selected")))
+          matriculable <- matriculable | str_detect(clicked$subject_mark, "^(R1|R2|R3|R4|R5|R6)")
           
           if(matriculable){
-            step$val <- 3
-            session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
+            enrollment_step$current_step <- 3
+            session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
             session$sendCustomMessage(type = "show", message = ".widgets_cal")
             session$sendCustomMessage(type = "show", message = ".workload_asignatures")
             session$sendCustomMessage(type = "show", message = ".download_asignatures")
             session$sendCustomMessage(type = "show", message = ".cal_asignatures")
-            if(length(selectedList$ass)>0 && clickedList$ass[[1]] %in% selectedList$ass) {
-              #print(paste0("input$graf_click deselecciona clicked ",clickedList$ass[[1]]))
-              selectedList$ass <- selectedList$ass[ !selectedList$ass %in% clickedList$ass[[1]] ]
+            if(length(selected_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% selected_list$subject_code) {
+              selected_list$subject_code <- selected_list$subject_code[ !selected_list$subject_code %in% clicked_list$subject_code[[1]] ]
             } else {
-              #print(paste0("input$graf_click selecciona clicked ",clickedList$ass[[1]]))
-              if(length(na.omit(selectedList$ass))==6){
-                mostra_avis_traduit(lang, "Remove one of your selected subjects before adding a new subject.")
+              if(length(na.omit(selected_list$subject_code))==6){
+                show_translated_notice(language, "Remove one of your selected subjects before adding a new subject.")
                 return(NULL)
               }
-              selectedList$ass <- unique(c(clickedList$ass[[1]], selectedList$ass))[1:6]
+              selected_list$subject_code <- unique(c(clicked_list$subject_code[[1]], selected_list$subject_code))[1:6]
             }
           }
         }
@@ -801,114 +772,107 @@ informaticaServer <- function(id, lang) {
       # Events: Recommend -----------------------------------------------------------------
       
       observeEvent(input$recommend, {
-        #print("recommend")
-        dadesGrau = dadesGrau()
-        ASSTFM = dadesGrau$ASSTFM
-        step$val <- 2
-        session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
-        matriculables <- as_tibble(qQ) %>% 
-          filter(nota %in% c("SU", "NP", translate(lang, "Fail"), translate(lang, "Pending"), translate(lang, "Selected")) | str_detect(nota, "^(R1|R2|R3|R4|R5|R6)"))
-        
-        # print("matriculables")
-        # print(as_tibble(qQ))
+        degree_data = degree_data()
+        final_project_code = degree_data$final_project_code
+        enrollment_step$current_step <- 2
+        session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
+        enrollable <- as_tibble(subject_positions) %>% 
+          filter(subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Selected")) | str_detect(subject_mark, "^(R1|R2|R3|R4|R5|R6)")
+        )
         
         # recomendador basado en distancias
-        if (input$recommender==translate(lang,"Distance")) {
-          suspeses <- matriculables  %>% filter(nota %in% c("SU","NP", translate(lang, "Fail")))
+        if (input$recommender==translate(language,"Distance")) {
+          failed <- enrollable  %>% filter(subject_mark %in% c("SU","NP", translate(language, "Fail")))
           # JULIA: 03/10/2023
-          #superades <- as_tibble(qQ) %>% filter(nota %in% c("A","NO","EX","M"))
-          superades <- as_tibble(qQ) %>% filter(nota %in% c("A","NO","EX","M", translate(lang, "Pass")))	  
-          convalidades <- as_tibble(qQ) %>% filter(nota %in% c(translate(lang, "Transfer")))
-          tfm_df <- as_tibble(qQ) %>% filter(ass %in% c(ASSTFM))
+          #passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M"))
+          passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M", translate(language, "Pass")))	  
+          transferred <- as_tibble(subject_positions) %>% filter(subject_mark %in% c(translate(language, "Transfer")))
+          final_project_data <- as_tibble(subject_positions) %>% filter(subject_code %in% c(final_project_code))
           # JULIA 27/01/2023 corregir las asignaturas usadas para calcular distancias 
           #b_set <- case_when(
-          #  length(superades$ass)>0 ~ list(superades),
-          #  length(convalidades$ass)>0 ~ list(convalidades),
+          #  length(passed$ass)>0 ~ list(passed),
+          #  length(transferred$ass)>0 ~ list(transferred),
           #  TRUE ~ list(tfm_df)
           #)
           #b_set <- b_set[[1]]
-          b_set <- rbind(superades, convalidades)
-          # print("b_set")
-          # print(b_set)
-          b_n <- length(b_set$ass)
-          dist = tibble(ass = matriculables$ass, d = 0)
-          #print("recommender")
+          completed_subjects <- rbind(passed, transferred)
+          completed_subjects_n <- length(completed_subjects$subject_code)
+          subject_distances = tibble(subject_code = enrollable$subject_code, d = 0)
+
           # para cada asignatura matriculable
-          for(A in matriculables$ass){
-            dist_a = 0
+          for(current_subject in enrollable$subject_code){
+            total_distance = 0
             # acumular la distancia a todas las asignaturas ya superadas o convalidadas
-            a_x <- matriculables[matriculables$ass==A,'V1']
-            a_y <- matriculables[matriculables$ass==A,'V2']
-            for(B in b_set$ass){
-              #              a_x <- matriculables %>% filter(ass == A) %>% pull(V1)
-              #              a_y <- matriculables %>% filter(ass == A) %>% pull(V2)
-              #              b_x <- b_set %>% filter(ass == B) %>% pull(V1)
-              #              b_y <- b_set %>% filter(ass == B) %>% pull(V2)
-              b_x <- b_set[b_set$ass==B,'V1']
-              b_y <- b_set[b_set$ass==B,'V2']
+            current_x <- enrollable[enrollable$subject_code==current_subject,'x']
+            current_y <- enrollable[enrollable$subject_code==current_subject,'y']
+            for(completed_subject in completed_subjects$subject_code){
+              #              current_x <- matriculables %>% filter(ass == current_subject) %>% pull(V1)
+              #              current_y <- matriculables %>% filter(ass == current_subject) %>% pull(V2)
+              #              completed_x <- completed_subjects %>% filter(ass == completed_subject) %>% pull(V1)
+              #              completed_y <- completed_subjects %>% filter(ass == completed_subject) %>% pull(V2)
+              completed_x <- completed_subjects[completed_subjects$subject_code==completed_subject,'x']
+              completed_y <- completed_subjects[completed_subjects$subject_code==completed_subject,'y']
               
               # JULIA 18/11/2023 fòrmula errònia!!!
-              d=sqrt((a_x-b_x)^2+(a_y-b_y)^2)
+              subject_distance=sqrt((current_x-completed_x)^2+(current_y-completed_y)^2)
               
               # si se trata de una asignatura suspendida, "forzar" que sea
               # más probable recomendarla reduciendo la distancia
-              if(A %in% suspeses){
-                d=d/input$distancia_suspeses
+              if(current_subject %in% failed){
+                subject_distance=subject_distance/input$failed_subjects_distance_adjustment
               }
-              dist_a <- dist_a + d
+              total_distance <- total_distance + subject_distance
             }
             # guardar la distancia promedio calculada
-            dist[dist$ass==A,'d']=dist_a/b_n
-            #            dist <- dist %>% 
-            #              mutate(d = if_else(ass == A, dist_a/b_n, d))
+            subject_distances[subject_distances$subject_code==current_subject,'d']=total_distance/completed_subjects_n
+            #            subject_distances <- subject_distances %>% 
+            #              mutate(d = if_else(ass == current_subject, total_distance/completed_subjects_n, d))
           }
           
-          if(length(superades$ass)>0 | length(convalidades$ass)>0){
-            arranged_dist <- dist %>% arrange(d)
+          if(length(passed$subject_code)>0 | length(transferred$subject_code)>0){
+            arranged_distances <- subject_distances %>% arrange(d)
           }else{
-            arranged_dist <- dist %>% arrange(desc(d))
+            arranged_distances <- subject_distances %>% arrange(desc(d))
           }
           
-          recomendedList$ass <- arranged_dist %>% 
+          recommended_list$subject_code <- arranged_distances %>% 
             head(n = 6) %>%
-            pull(ass)
-          # print("dist")
-          # print(dist %>% arrange(d))
+            pull(subject_code)
         }
         
         # recomendador aleatorio
-        if (input$recommender==translate(lang,"Random")) {
-          recomendedList$ass <-
-            matriculables %>%
+        if (input$recommender==translate(language,"Random")) {
+          recommended_list$subject_code <-
+            enrollable %>%
             sample_n(6) %>%
-            pull(ass)
+            pull(subject_code)
         }
         
-        # mostra_avis_traduit(lang, "The system has marked in shades of green the ranking of the 6 most recommended subjects for your enrollment.")
+        # show_translated_notice(language, "The system has marked in shades of green the ranking of the 6 most recommended subjects for your enrollment.")
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
       })
       
-      # Events: Previous, next, buscar, etc -----------------------------------------------------------------
+      # Events: Previous, next, search, etc -----------------------------------------------------------------
       
       observeEvent(input$previous1, {
-        clickedList$ass = character()
-        descartaList$ass = character()
-        selectedList$ass = character()
-        recomendedList$ass = character()
-        step$val <- 0
-        session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
+        clicked_list$subject_code = character() 
+        discarded_list$subject_code = character()
+        selected_list$subject_code = character()
+        recommended_list$subject_code = character()
+        enrollment_step$current_step <- 0
+        session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
       })
       
       observeEvent(input$previous2, {
-        selectedList$ass = character()
-        recomendedList$ass = character()
-        step$val <- 1
-        session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
+        selected_list$subject_code = character()
+        recommended_list$subject_code = character()
+        enrollment_step$current_step <- 1
+        session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
         session$sendCustomMessage(type = "show",  message = ".step-sliders")
         session$sendCustomMessage(type = "show",  message = ".step-recommend")
         session$sendCustomMessage(type = "hide",  message = ".selecciona_asignatures")
@@ -918,19 +882,19 @@ informaticaServer <- function(id, lang) {
       })
       
       observeEvent(input$next_button, {
-        step$val <- 1
-        session$sendCustomMessage(type = "steps",  message = paste0("step",step$val))
+        enrollment_step$current_step <- 1
+        session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
       })
       
-      observeEvent(input$tipologia, {
-        updateTextInput(session, "buscar", value = "")
+      observeEvent(input$subject_type, {
+        updateTextInput(session, "search_subject", value = "")
       })
       
       
       # Events: Descarregar i screenshot-----------------------------------------------------------------
       
-      observeEvent(input$descargar, {
-        step$val <- 4
+      observeEvent(input$download, {
+        enrollment_step$current_step <- 4
         session$sendCustomMessage(type = "hide",  message = ".tabbable")
         session$sendCustomMessage(type = "hide",  message = ".well")
         session$sendCustomMessage(type = "hide",  message = ".steps")
