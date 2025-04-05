@@ -18,6 +18,28 @@ subjectEnrollmentServer <- function(id, language) {
       recommended_list <- reactiveValues(subject_code=character())
       selected_list <- reactiveValues(subject_code=character())
       
+      static_legend_labels_base <- c(
+        "Pass", "Transfer", "Fail", "Not available", "Discarded", "Pending", 
+        "Recommendation 1", "Recommendation 2", "Recommendation 3", "Recommendation 4", "Recommendation 5", "Recommendation 6",
+        "Selected"
+      )
+
+      color_palette_base <- c(
+        "#b9f6ff", # Pass
+        "#E3FBFF", # Transfer
+        "#ffc2b9", # Fail 
+        "#cccccc", # Not available 
+        "#e0e0e0", # Discarded
+        "#f9f9f9", # Pending 
+        "#ecff6d", # R1
+        "#efff86", # R2
+        "#f3ffa0", # R3
+        "#f6ffb9", # R4
+        "#f9ffd3", # R5
+        "#fdffec", # R6
+        "#a3ff6d"  # Selected
+      )
+      
       # JULIA 24/12/2022 parámetros de entrada
       # JULIÀ 24/10/2023 de moment ho desactivem
       #claveTutor <- reactive({
@@ -312,21 +334,14 @@ subjectEnrollmentServer <- function(id, language) {
             
             # glimpse(subject_coordinates)
             
-            # Controlar estats (Controlar estados)
             # JULIA 09/01/2023 cambiar full_name por abrv
-            R1 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[1]) %>% pull(subject_abbreviation) %>% paste0("R1 ", .)
-            R2 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[2]) %>% pull(subject_abbreviation) %>% paste0("R2 ", .)
-            R3 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[3]) %>% pull(subject_abbreviation) %>% paste0("R3 ", .)
-            R4 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[4]) %>% pull(subject_abbreviation) %>% paste0("R4 ", .)
-            R5 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[5]) %>% pull(subject_abbreviation) %>% paste0("R5 ", .)
-            R6 <-  subject_coordinates %>% filter(subject_code %in% recommended_list$subject_code[6]) %>% pull(subject_abbreviation) %>% paste0("R6 ", .)
             subject_coordinates <- subject_coordinates %>% 
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[1], R1, subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[2], R2, subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[3], R3, subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[4], R4, subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[5], R5, subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[6], R6, subject_mark)) %>% 
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[1], "R1", subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[2], "R2", subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[3], "R3", subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[4], "R4", subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[5], "R5", subject_mark)) %>%
+              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[6], "R6", subject_mark)) %>%
               mutate(subject_mark = ifelse(subject_code %in% discarded_list$subject_code, translate(language, "Discarded"), subject_mark)) %>% 
               mutate(subject_mark = ifelse(subject_code %in% selected_list$subject_code, translate(language, "Selected"), subject_mark))
             
@@ -345,24 +360,26 @@ subjectEnrollmentServer <- function(id, language) {
             subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Fail")
             subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transfer")
             
-            subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(translate(language, "Pass"),
-                                   translate(language, "Fail"),
-                                   translate(language, "Pending"),
-                                   translate(language, "Not available"),
+            subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(
+                                   translate(language, "Pass"), 
                                    translate(language, "Transfer"),
+                                   translate(language, "Fail"),
+                                   translate(language, "Not available"),
                                    translate(language, "Discarded"),
-                                   translate(language, "Selected"),
-                                   R1,R2,R3,R4,R5,R6))
-            # JULIA 24/12/2022 cambio pendiente de la paleta de colores
-            #pal <- c("#c5c4c4", "#FF7D87", "#9aebfd", "#fdf6f6", "#e0e0e0", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
-            color_palette <- c("#73edff", "#FF7D87", "#c5c4c4", "#fdf6f6", "#D8F6FF", "#ccbb11", "#4875fb", "#22b33b", "#4adb63", "#8cff8c", "#acffa3", "#cdffc1", "#e8ffe0")
+                                   translate(language, "Pending"),
+                                   "R1", "R2", "R3", "R4", "R5", "R6",
+                                   translate(language, "Selected")
+                                   ))
+
+            color_palette <- color_palette_base # Use the base definition
             
             # graf
             colorT="black"
             subject_plot=ggplot(subject_coordinates, aes(x=x,y=y,label=subject_abbreviation)) +
               theme_void() +
               theme(
-                panel.background=element_rect(fill=NA, color=NA)
+                panel.background=element_rect(fill=NA, color=NA),
+                legend.position = "none" # Disable ggplot legend
               )
             
             # si no hi ha cap indicador triat
@@ -372,13 +389,11 @@ subjectEnrollmentServer <- function(id, language) {
               if (input$bubbles) {
                 subject_plot = subject_plot +
                   geom_voronoi_tile(aes(x=x,y=y,fill=subject_mark,group=-1L), colour="white",max.radius=input$bubbles) +
-                  scale_fill_manual(values=color_palette, drop = F)+guides(colour="none")+theme(legend.position="right") +
-                  labs(fill = translate(language, "Subject status"))
+                  scale_fill_manual(values=color_palette, drop = F)
               } else {
                 subject_plot = subject_plot + 
                   geom_voronoi_tile(aes(x=x,y=y,fill=subject_mark,group=-1L), colour="white") +
-                  scale_fill_manual(values=color_palette, drop = F)+guides(colour="none")+theme(legend.position="right") +
-                  labs(fill = translate(language, "Subject status"))
+                  scale_fill_manual(values=color_palette, drop = F)
               }
             } else {
               # color de l'àrea en funció de l'indicador
@@ -406,17 +421,19 @@ subjectEnrollmentServer <- function(id, language) {
             filtered_subject_coordinates = subject_coordinates[subject_coordinates$subject_mark==translate(language, "Pending") | subject_coordinates$selected_subjects==1,]
             # JULIA 07/01/2023 cambiar a 1 columna en vertical
             subject_plot <- subject_plot +
-              geom_point(data = filtered_subject_coordinates, aes(alpha=ifelse(selected_subjects==1,1,0.72)), shape = 19, size = 2, colour = colorT) +
-              guides(colour="none") + 
-              guides(alpha="none") +
-              guides(fill=guide_legend(ncol=1)) +
-              geom_text_repel(aes(alpha=ifelse(subject_coordinates$selected_subjects==1,1,0.72)),size=5,colour=colorT) +
-              theme(
-                legend.justification = "left",
-                legend.direction = "vertical",
-                legend.title = element_text(size = 15, face = "bold"),
-                legend.text = element_text(size = 13)
-              )
+              geom_point(data = filtered_subject_coordinates %>% 
+                        filter(!subject_mark %in% c(translate(language, "Not available"), 
+                                                  translate(language, "Pass"), 
+                                                  translate(language, "Transfer"),
+                                                  translate(language, "Discarded"))), 
+                        aes(alpha=ifelse(selected_subjects==1,1,0.72)), shape = 19, size = 2, colour = colorT) +
+              guides(colour="none", alpha="none") +
+              geom_text_repel(data = filtered_subject_coordinates %>% 
+                            filter(!subject_mark %in% c(translate(language, "Not available"), 
+                                                      translate(language, "Pass"), 
+                                                      translate(language, "Transfer"),
+                                                      translate(language, "Discarded"))), 
+                            aes(alpha=ifelse(selected_subjects==1,1,0.72)), size=5, colour=colorT)
             
             # guardamos el mapa para hover, etc.
             #print("save qQ")
@@ -430,6 +447,81 @@ subjectEnrollmentServer <- function(id, language) {
       }, height=600)
       
       
+      # Custom legend using HTML
+      output$uiLegend <- renderUI({
+        ns <- session$ns
+        
+        # Define colors and labels (ensure these match the plot)
+        color_palette <- color_palette_base
+        
+        # Translate all base labels for the HTML legend display
+        final_legend_labels <- sapply(static_legend_labels_base, function(label) translate(language, label))
+
+        # Generate items for the first legend (Statuses)
+        labels1 <- final_legend_labels[1:6]
+        colors1 <- color_palette[1:6]
+        legend_items1 <- lapply(seq_along(labels1), function(i) {
+          tags$li(
+            style = "display: flex; align-items: center; margin-bottom: 5px;",
+            tags$span(
+              style = paste0(
+                "display: inline-block; ",
+                "width: 15px; height: 15px; ",
+                "background-color: ", colors1[i], "; ", 
+                "margin-right: 8px; border: 1px solid #ccc;"
+              )
+            ),
+            tags$span(labels1[i]) 
+          )
+        })
+        
+        # Generate items for the second legend (Recommendations & selection)
+        labels2 <- final_legend_labels[7:13]
+        colors2 <- color_palette[7:13]
+        legend_items2 <- lapply(seq_along(labels2), function(i) {
+          tags$li(
+            style = "display: flex; align-items: center; margin-bottom: 5px;",
+            tags$span(
+              style = paste0(
+                "display: inline-block; ",
+                "width: 15px; height: 15px; ",
+                "background-color: ", colors2[i], "; ", 
+                "margin-right: 8px; border: 1px solid #ccc;"
+              )
+            ),
+            tags$span(labels2[i]) 
+          )
+        })
+
+        # --- Return the legends based on the current step ---
+        # Always show the first legend
+        tag_list_elements <- list(
+          tags$div(
+            style = "margin-top: 20px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9;",
+            h5(translate(language, "Subject status"), style="margin-top: 0; margin-bottom: 10px; font-weight: bold;"),
+            tags$ul(
+              style = "list-style: none; padding-left: 0; margin-bottom: 0;", 
+              legend_items1
+            )
+          )
+        )
+        
+        # Conditionally add the second legend if step is "Recommendations" or "Selection"
+        if (enrollment_step$current_step >= 2) {
+          tag_list_elements[[length(tag_list_elements) + 1]] <- 
+            tags$div(
+              style = "margin-top: 15px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9;", 
+              h5(translate(language, "Recommendations & selection"), style="margin-top: 0; margin-bottom: 10px; font-weight: bold;"),
+              tags$ul(
+                style = "list-style: none; padding-left: 0; margin-bottom: 0;",
+                legend_items2
+              )
+            )
+        }
+        
+        # Return the final tagList
+        do.call(tagList, tag_list_elements)
+      })
       
       
       # Gràfic del calendari --------------------------------------------------------------

@@ -171,10 +171,12 @@ subjectEnrollmentUI <- function(id, language) {
                 )
               ),
               fluent_grid_item(
-               # JULIA 23/12/2022 cambiar h2 por h4
-               h4(translate(language, "Map of subjects")),
-               div(
-                class = "graf",
+                # Use columns for layout: 8 for plot, 4 for legend
+                class = "ms-Grid-col ms-sm12 ms-md12 ms-lg8", 
+                # JULIA 23/12/2022 cambiar h2 por h4
+                h4(translate(language, "Map of subjects")),
+                div(
+                  class = "graf",
                   tagList( 
                     plotOutput(
                       namespace("grafic"),
@@ -189,8 +191,15 @@ subjectEnrollmentUI <- function(id, language) {
                   # JULIA 07/01/2023 cambiar el estilo en la propia función
                   #style="position:absolute;top:0;left:0"
                 ),
-               ),
-               NULL
+              ),
+              fluent_grid_item(
+                # Use columns for layout: 4 for legend
+                class = "ms-Grid-col ms-sm12 ms-md12 ms-lg4",
+                # Add padding to align vertically with the map title/plot
+                style = "padding-top: 58px;",
+                # Add the custom HTML legend
+                uiOutput(namespace("uiLegend"))
+              )
              )
            ),
            tabPanel(
