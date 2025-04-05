@@ -125,8 +125,8 @@ get_semester_start_dates <- function() {
     group_by(year_month = lubridate::floor_date(day, unit = 'month')) %>%
     slice(3L)
   list(
-    first_semester_start = third_wednesday %>% filter(first_semester_start) %>% top_n(1) %>% pull(day),
-    second_semester_start = third_wednesday %>% filter(second_semester_start)%>% top_n(1) %>% pull(day)
+    first_semester_start = third_wednesday %>% filter(first_semester_start) %>% slice_max(day, n = 1) %>% pull(day),
+    second_semester_start = third_wednesday %>% filter(second_semester_start) %>% slice_max(day, n = 1) %>% pull(day)
   )
 }
 
