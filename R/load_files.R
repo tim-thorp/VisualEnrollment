@@ -44,7 +44,7 @@ load_files <- function(){
                                                  package = "visualenrollment"), 
                                       col_types = readr::cols(.default = "c"))
   # Rename columns to be more descriptive
-  colnames(files$noms_INFORMATICA) <- c("subject_code", "name_ca", "name_es", "name_en")
+  colnames(files$noms_INFORMATICA) <- c("subject_code", "name_en", "name_es", "name_ca")
   
   ## assignatures_INFORMATICA.csv
   #cli::cli_progress_step("Load assignatures_INFORMATICA.csv")
