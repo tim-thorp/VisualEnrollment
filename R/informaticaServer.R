@@ -20,7 +20,7 @@ subjectEnrollmentServer <- function(id, language) {
       
       static_legend_labels_base <- c(
         "Pass", "Transfer", "Fail", "Not available", "Discarded", "Pending", 
-        "Recommendation 1", "Recommendation 2", "Recommendation 3", "Recommendation 4", "Recommendation 5", "Recommendation 6",
+        "R1", "R2", "R3", "R4", "R5", "R6",
         "Selected"
       )
 
@@ -484,9 +484,45 @@ subjectEnrollmentServer <- function(id, language) {
         })
         
         # Generate items for the second legend (Recommendations & selection)
-        labels2 <- final_legend_labels[7:13]
+        # Instead of using final_legend_labels, we'll create custom labels with abbreviations
         colors2 <- color_palette[7:13]
-        legend_items2 <- lapply(seq_along(labels2), function(i) {
+        
+        # Get subject abbreviations for recommendations
+        subject_abbreviations <- vector("list", 6)
+        # Initialize all with empty strings
+        for(i in 1:6) {
+          subject_abbreviations[[i]] <- ""
+        }
+        
+        # Only try to get abbreviations if we have recommendations
+        if(length(recommended_list$subject_code) > 0) {
+          # Get abbreviations for each recommended subject
+          for(i in 1:min(6, length(recommended_list$subject_code))) {
+            if(!is.na(recommended_list$subject_code[i])) {
+              subject_code <- recommended_list$subject_code[i]
+              abbrev <- degree_data()$subjects_data %>% 
+                filter(subject_code == !!subject_code) %>% 
+                pull(subject_abbreviation)
+              
+              if(length(abbrev) > 0) {
+                subject_abbreviations[[i]] <- abbrev[1]
+              }
+            }
+          }
+        }
+        
+        # Create custom labels with R1-R6 + abbreviations
+        custom_labels <- c(
+          paste0("R1: ", subject_abbreviations[[1]]),
+          paste0("R2: ", subject_abbreviations[[2]]),
+          paste0("R3: ", subject_abbreviations[[3]]),
+          paste0("R4: ", subject_abbreviations[[4]]),
+          paste0("R5: ", subject_abbreviations[[5]]),
+          paste0("R6: ", subject_abbreviations[[6]]),
+          translate(language, "Selected")
+        )
+        
+        legend_items2 <- lapply(seq_along(custom_labels), function(i) {
           tags$li(
             style = "display: flex; align-items: center; margin-bottom: 5px;",
             tags$span(
@@ -497,7 +533,7 @@ subjectEnrollmentServer <- function(id, language) {
                 "margin-right: 8px; border: 1px solid #ccc;"
               )
             ),
-            tags$span(labels2[i]) 
+            tags$span(custom_labels[i]) 
           )
         })
 
