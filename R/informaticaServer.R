@@ -37,7 +37,7 @@ subjectEnrollmentServer <- function(id, language) {
         "#f6ffb9", # R4
         "#f9ffd3", # R5
         "#fdffec", # R6
-        "#a3ff6d"  # Selected
+        "#4875fb"  # Selected
       )
       
       # JULIA 24/12/2022 parámetros de entrada
