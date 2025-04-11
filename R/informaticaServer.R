@@ -421,26 +421,8 @@ subjectEnrollmentServer <- function(id, language) {
             filtered_subject_coordinates = subject_coordinates[subject_coordinates$subject_mark==translate(language, "Pending") | subject_coordinates$selected_subjects==1,]
             # JULIA 07/01/2023 cambiar a 1 columna en vertical
             subject_plot <- subject_plot +
-              geom_point(data = filtered_subject_coordinates %>% 
-                        filter(!subject_mark %in% c(translate(language, "Not available"), 
-                                                  translate(language, "Pass"), 
-                                                  translate(language, "Transfer"),
-                                                  translate(language, "Discarded"))), 
-                        aes(alpha=ifelse(selected_subjects==1,1,0.72)), shape = 19, size = 2, colour = colorT) +
-              guides(colour="none", alpha="none") +
-              # Text that repels for subjects with points
-              geom_text_repel(data = filtered_subject_coordinates %>% 
-                            filter(!subject_mark %in% c(translate(language, "Not available"), 
-                                                      translate(language, "Pass"), 
-                                                      translate(language, "Transfer"),
-                                                      translate(language, "Discarded"))), 
-                            aes(alpha=ifelse(selected_subjects==1,1,0.72)), size=5, colour=colorT) +
-              # Centered text for subjects without points
-              geom_text(data = filtered_subject_coordinates %>% 
-                      filter(subject_mark %in% c(translate(language, "Not available"), 
-                                               translate(language, "Pass"), 
-                                               translate(language, "Transfer"),
-                                               translate(language, "Discarded"))), 
+              # Centered text for all subjects
+              geom_text(data = filtered_subject_coordinates, 
                       aes(alpha=ifelse(selected_subjects==1,1,0.72)), size=5, colour=colorT, hjust=0.5, vjust=0.5)
             
             # guardamos el mapa para hover, etc.
