@@ -76,28 +76,22 @@ search_subjects <- function(language, degree_data, subjects_df, input) {
 }
 
 create_subject_hover_info <- function(input, hovered) {
+  # Get the hover coordinates relative to the CSS container
+  x_pos <- input$graf_hover$coords_css$x
+  y_pos <- input$graf_hover$coords_css$y
+  
   div(
     class = "graf_hover_info_tooltip",
-    # JULIA 03/01/2023 situar el tooltip, no funciona del tot bé !!!
-    style = "position: absolute; z-index: 100; width: 200px; left: 900px; top: 0px",
-    # JULIA 30/12/2022 añadir el nombre completo
+    style = paste0(
+      "position: absolute;",
+      "left: ", x_pos, "px;",
+      "top: ", y_pos, "px;",
+      "display: block;",
+      "transform: translate(-50%, -100%);"  # Center horizontally and position above cursor
+    ),
     p(hovered$full_name),
     p(hovered$subject_type),
-    # JULIÀ 07/11/2024 quitar semestre
-    #p(paste0("Semestre: ", hovered$asem)),
-    p(paste0("Codi: ", hovered$subject_code)),
-    p(hovered$subject_mark),
-    # JULIA 07/01/2023 mostrar la posición del elemento !!!
-    #p(paste0(round(input$graf_hover$coords_img$x),", ",round(input$graf_hover$coords_img$y))),
-    tags$script(
-      paste0(
-        "graf_hover(",
-        input$graf_hover$coords_img$x,
-        ",",
-        input$graf_hover$coords_img$y,
-        ")"
-      )
-    )
+    p(hovered$subject_mark)
   )
 }
 
