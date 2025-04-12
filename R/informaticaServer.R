@@ -966,7 +966,7 @@ subjectEnrollmentServer <- function(id, language) {
             pull(subject_code)
         }
         
-        # show_translated_notice(language, "The system has marked in shades of green the ranking of the 6 most recommended subjects for your enrollment.")
+        # show_translated_notice(language, "The system has marked in shades of yellow the ranking of the 6 most recommended subjects for your enrollment.")
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
