@@ -970,6 +970,7 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".widgets_cal")
       })
       
       # Events: Previous, next, search, etc -----------------------------------------------------------------
@@ -984,6 +985,8 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".widgets_cal")
+        updateSliderInput(session, "workload", value = 1) # Reset workload slider
       })
       
       observeEvent(input$previous2, {
@@ -997,6 +1000,8 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".widgets_cal")
+        updateSliderInput(session, "workload", value = 1) # Reset workload slider
       })
       
       observeEvent(input$next_button, {
@@ -1007,6 +1012,40 @@ subjectEnrollmentServer <- function(id, language) {
       observeEvent(input$subject_type, {
         updateTextInput(session, "search_subject", value = "")
       })
+      
+      # Reset enrollment process when student changes
+      observeEvent(input$idp, {
+        # Ignore initial load ("---") or null value
+        req(input$idp != "---") 
+        
+        # Reset reactive values
+        clicked_list$subject_code = character() 
+        discarded_list$subject_code = character()
+        selected_list$subject_code = character()
+        recommended_list$subject_code = character()
+        
+        # Reset step counter
+        enrollment_step$current_step <- 0
+        
+        # Reset sliders to default values
+        updateSliderInput(session, "difficulty", value = 1)
+        updateSliderInput(session, "popularity", value = 1)
+        updateSliderInput(session, "prerequisite", value = 5)
+        updateSliderInput(session, "overlap", value = 1)
+        updateSliderInput(session, "workload", value = 1) # Reset workload slider
+        
+        # Reset UI elements to initial state (Step 0)
+        session$sendCustomMessage(type = "steps",  message = paste0("step", enrollment_step$current_step))
+        session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".download_asignatures")
+        session$sendCustomMessage(type = "hide", message = ".widgets_cal")
+        session$sendCustomMessage(type = "hide",  message = ".selecciona_asignatures")
+        session$sendCustomMessage(type = "hide",  message = ".step-sliders")
+        session$sendCustomMessage(type = "hide",  message = ".step-recommend")
+        session$sendCustomMessage(type = "show",  message = ".step-convalida")
+        
+      }, ignoreNULL = TRUE, ignoreInit = TRUE)
       
       
       # Events: Descarregar i screenshot-----------------------------------------------------------------
