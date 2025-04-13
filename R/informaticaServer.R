@@ -639,22 +639,45 @@ subjectEnrollmentServer <- function(id, language) {
         # Add the "Selected" label
         custom_labels[7] <- translate(language, "Selected")
         
-        legend_items2 <- lapply(seq_along(custom_labels), function(i) {
+        # Generate items for the second legend (Recommendations ONLY)
+        recommendation_labels <- custom_labels[1:6] # Only first 6 labels
+        recommendation_colors <- colors2[1:6]      # Only first 6 colors
+
+        legend_items2 <- lapply(seq_along(recommendation_labels), function(i) {
           tags$li(
             style = "display: flex; align-items: baseline; margin-bottom: 5px;",
             tags$span(
               style = paste0(
                 "display: inline-block; ",
                 "width: 15px; height: 15px; ",
-                "background-color: ", colors2[i], "; ", 
+                "background-color: ", recommendation_colors[i], "; ", # Use recommendation_colors
                 "margin-right: 8px; border: 1px solid #ccc;",
                 "flex-shrink: 0; box-sizing: border-box;",
                 "position: relative; top: 3px;"
               )
             ),
-            tags$span(HTML(custom_labels[i])) 
+            tags$span(HTML(recommendation_labels[i])) # Use recommendation_labels
           )
         })
+        
+        # --- Generate items for the third legend (Selection ONLY) ---
+        selected_label <- translate(language, "Selected")
+        selected_color <- colors2[7] # The last color is for Selected
+
+        legend_item_selected <- tags$li(
+          style = "display: flex; align-items: baseline; margin-bottom: 5px;",
+          tags$span(
+            style = paste0(
+              "display: inline-block; ",
+              "width: 15px; height: 15px; ",
+              "background-color: ", selected_color, "; ",
+              "margin-right: 8px; border: 1px solid #ccc;",
+              "flex-shrink: 0; box-sizing: border-box;",
+              "position: relative; top: 3px;"
+            )
+          ),
+          tags$span(selected_label)
+        )
 
         # --- Return the legends based on the current step ---
         # Always show the first legend
@@ -674,10 +697,23 @@ subjectEnrollmentServer <- function(id, language) {
           tag_list_elements[[length(tag_list_elements) + 1]] <- 
             tags$div(
               style = "margin-top: 15px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9;", 
-              h5(translate(language, "Recommendations & selection"), style="margin-top: 0; margin-bottom: 10px; font-weight: bold;"),
+              h5(translate(language, "Recommendations"), style="margin-top: 0; margin-bottom: 10px; font-weight: bold;"), # Changed title
               tags$ul(
                 style = "list-style: none; padding-left: 0; margin-bottom: 0;",
-                legend_items2
+                legend_items2 # Use the modified recommendation items
+              )
+            )
+        }
+        
+        # Conditionally add the third legend if step is "Selection" (Step 3 or 4)
+        if (enrollment_step$current_step >= 3) {
+          tag_list_elements[[length(tag_list_elements) + 1]] <-
+            tags$div(
+              style = "margin-top: 15px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9;",
+              h5(translate(language, "Selection"), style="margin-top: 0; margin-bottom: 10px; font-weight: bold;"),
+              tags$ul(
+                style = "list-style: none; padding-left: 0; margin-bottom: 0;",
+                legend_item_selected # Add the single selected item
               )
             )
         }
