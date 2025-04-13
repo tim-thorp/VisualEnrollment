@@ -343,17 +343,27 @@ subjectEnrollmentServer <- function(id, language) {
             length(subjects),length(subjects))
           
           if (!is.null(subject_distance_matrix)) {
-            # JULIA 23/12/2022 forzar una distancia mínima
-            # añadimos un "pequeño" margen a los ceros
+            # Normalize the combined distance matrix to [0, 1]
+            min_dist <- min(subject_distance_matrix, na.rm = TRUE)
+            max_dist <- max(subject_distance_matrix, na.rm = TRUE)
+            if (is.finite(min_dist) && is.finite(max_dist) && max_dist > min_dist) {
+              subject_distance_matrix <- (subject_distance_matrix - min_dist) / (max_dist - min_dist)
+            } else if (is.finite(min_dist)) {
+              # Handle cases where all distances are the same (or matrix is empty/all NA)
+              subject_distance_matrix[,] <- 0 # Set all to 0 if range is zero or invalid
+            }
+            
+            # añadimos un "pequeño" margen a los ceros y establecemos un suelo mínimo (0.5)
             set.seed(1)
-            subject_distance_matrix=apply(subject_distance_matrix,c(1,2),function(x){ifelse(x>0,x,runif(1,0,0.1))})
+            subject_distance_matrix=apply(subject_distance_matrix,c(1,2),function(x){ 
+              ifelse(x == 0, runif(1, 0.5, 0.6), ifelse(x < 0.5, 0.5, x))
+            })
             # JULIA 24/12/2022 forzar una separación para poder generar cuadrícula
             subject_distance_matrix=subject_distance_matrix+1
             
             # crear mapeado 2D de la matriz de distancias resultante
             # JULIA 07/01/2023 se podrían probar otros algoritmos
             subject_coordinates <- sammon(subject_distance_matrix, trace=F)
-            #subject_coordinates <- isoMDS(subject_distance_matrix, k=2)
             
             # corrección manual tomando como referencia el TF
             # el TF debería quedar lo más a la derecha y arriba posible
