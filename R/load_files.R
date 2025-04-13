@@ -62,9 +62,9 @@ load_files <- function(){
                                           sep=";",
                                           colClasses=c("character", "numeric",
                                                        "character", "character", 
-                                                       "character","character","character"))
+                                                       "character","character","character", "numeric"))
   # Rename columns to be more descriptive
-  colnames(files$assignatures_INFORMATICA) <- c("subject_code", "absolute_semester", "semester_number", "type", "path", "name", "subject_abbreviation")
+  colnames(files$assignatures_INFORMATICA) <- c("subject_code", "absolute_semester", "semester_number", "type", "path", "name", "subject_abbreviation", "credits")
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
   

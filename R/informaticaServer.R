@@ -200,6 +200,12 @@ subjectEnrollmentServer <- function(id, language) {
         hovered$subject_type <- get_subject_type(language, degree_data, hovered)
         hovered$name <- get_subject_name(language, degree_data, hovered)
 
+        # --- Get Credits Info ---
+        subject_credits <- degree_data$subjects_data %>%
+          filter(subject_code == hovered_code) %>%
+          pull(credits) %>%
+          as.character() # Ensure it's character
+
         # --- Get Current Subject Mark (potentially R1-R6) ---
         display_mark <- subject_positions %>%
           filter(subject_code == hovered_code) %>%
@@ -298,6 +304,7 @@ subjectEnrollmentServer <- function(id, language) {
             "z-index: 1000;" # Ensure it's above other elements
           ),
           tags$h5(hovered$name, style = "margin-top: 0; margin-bottom: 5px; font-weight: bold;"),
+          tags$p(paste0(subject_credits, " ECTS"), style = "margin-bottom: 5px;"),
           tags$p(paste(translate(language, "Type:"), hovered$subject_type), style = "margin-bottom: 5px;"),
           # Use the potentially modified status_text here, wrapped in HTML()
           tags$p(HTML(paste(translate(language, "Status:"), status_text)), style = "margin-bottom: 5px;"),
