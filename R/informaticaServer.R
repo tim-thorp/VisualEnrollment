@@ -193,24 +193,60 @@ subjectEnrollmentServer <- function(id, language) {
         # print("hovered")
         # print(hovered)
         degree_data <- degree_data()
+        # Ensure subject_positions exists and is up-to-date
+        req(exists("subject_positions"))
+
+        hovered_code <- hovered$subject_code
         hovered$subject_type <- get_subject_type(language, degree_data, hovered)
         hovered$name <- get_subject_name(language, degree_data, hovered)
 
-        # --- Get Current Subject Mark ---
-        # Ensure subject_positions exists and is up-to-date
-        req(exists("subject_positions"))
-        hovered_subject_mark <- subject_positions %>%
-          filter(subject_code == hovered$subject_code) %>%
+        # --- Get Current Subject Mark (potentially R1-R6) ---
+        display_mark <- subject_positions %>%
+          filter(subject_code == hovered_code) %>%
           pull(subject_mark) %>%
-          as.character() # Ensure it's character for comparison
+          as.character() # Ensure it's character
 
-        # Define passed/transferred marks for checking
+        # --- Check if originally failed ---
+        status_text <- display_mark # Default to the displayed mark (e.g., "R1", "Pending")
+        if (startsWith(display_mark, "R") && !is.null(degree_data$student_data)) {
+          rank_number <- substr(display_mark, 2, 2) # Extract the number from R1, R2, etc.
+          base_status_text <- paste0(translate(language, "Recommendation"), " ", rank_number)
+          
+          student_record <- degree_data$student_data %>% filter(subject_code == hovered_code)
+          if (nrow(student_record) > 0) {
+            # Check the last recorded mark for this subject
+            original_mark <- student_record$subject_mark[1] # Already aggregated to last mark
+            fail_marks <- c('SU', 'NP', translate(language, "Fail"))
+            if (original_mark %in% fail_marks) {
+              # Wrap the "(Fail)" including parentheses in a span with the fail color
+              fail_text <- paste0(" <span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
+              status_text <- paste0(base_status_text, fail_text)
+            } else {
+              status_text <- base_status_text # Set to "Recommendation X" if not failed
+            }
+          } else {
+             status_text <- base_status_text # Set to "Recommendation X" if no student record found for this subject
+          }
+        } else if (startsWith(display_mark, "R")) { # Handle case where student_data might be NULL but it's still Rx
+            rank_number <- substr(display_mark, 2, 2) 
+            status_text <- paste0(translate(language, "Recommendation"), " ", rank_number)
+        } else if (display_mark == translate(language, "Fail")) {
+            # Ensure "Fail" status is displayed correctly if not an R-rank
+            status_text <- translate(language, "Fail")
+        } else if (display_mark == translate(language, "Pass")) {
+            status_text <- translate(language, "Pass")
+        } else if (display_mark == translate(language, "Transfer")) {
+            status_text <- translate(language, "Transfer")
+        }
+        # Add other explicit translations if needed, otherwise keep display_mark
+
+        # Define passed/transferred marks for checking prerequisites
         passed_marks <- c(translate(language, "Pass"), translate(language, "Transfer"))
 
         # --- Get Prerequisite Info ---
         prerequisites <- degree_data$prerequisites_data
         subject_prereqs_codes <- prerequisites %>%
-          filter(subject_code == hovered$subject_code) %>%
+          filter(subject_code == hovered_code) %>%
           pull(prerequisite_code)
 
         # Get codes of subjects actually passed or transferred by the student
@@ -263,10 +299,12 @@ subjectEnrollmentServer <- function(id, language) {
           ),
           tags$h5(hovered$name, style = "margin-top: 0; margin-bottom: 5px; font-weight: bold;"),
           tags$p(paste(translate(language, "Type:"), hovered$subject_type), style = "margin-bottom: 5px;"),
-          tags$p(paste(translate(language, "Status:"), hovered_subject_mark), style = "margin-bottom: 5px;"),
+          # Use the potentially modified status_text here, wrapped in HTML()
+          tags$p(HTML(paste(translate(language, "Status:"), status_text)), style = "margin-bottom: 5px;"),
           # --- Add Prerequisite Section (conditionally) ---
           {
-            if (!(hovered_subject_mark %in% passed_marks)) {
+            # Check against the original display_mark before modification
+            if (!(display_mark %in% passed_marks)) {
               # Use a div to contain the label and the list/span
               tags$div( 
                 tags$strong(paste0(translate(language, "Prerequisites:"), " ")), # Bold label
@@ -524,6 +562,7 @@ subjectEnrollmentServer <- function(id, language) {
         
         # Define colors and labels (ensure these match the plot)
         color_palette <- color_palette_base
+        degree_data <- degree_data() # Need degree_data for student records
         
         # Translate all base labels for the HTML legend display
         final_legend_labels <- sapply(static_legend_labels_base, function(label) translate(language, label))
@@ -547,43 +586,54 @@ subjectEnrollmentServer <- function(id, language) {
         })
         
         # Generate items for the second legend (Recommendations & selection)
-        # Instead of using final_legend_labels, we'll create custom labels with abbreviations
         colors2 <- color_palette[7:13]
         
-        # Get subject abbreviations for recommendations
-        subject_abbreviations <- vector("list", 6)
-        # Initialize all with empty strings
-        for(i in 1:6) {
-          subject_abbreviations[[i]] <- ""
-        }
+        # Get subject abbreviations and check for failure status
+        custom_labels <- vector("character", 7)
+        fail_marks <- c('SU', 'NP', translate(language, "Fail"))
         
-        # Only try to get abbreviations if we have recommendations
+        # Only try to get info if we have recommendations and student data
         if(length(recommended_list$subject_code) > 0) {
-          # Get abbreviations for each recommended subject
+          # Get abbreviations and failure status for each recommended subject
           for(i in 1:min(6, length(recommended_list$subject_code))) {
-            if(!is.na(recommended_list$subject_code[i])) {
-              subject_code <- recommended_list$subject_code[i]
-              abbrev <- degree_data()$subjects_data %>% 
+            subject_code <- recommended_list$subject_code[i]
+            if(!is.na(subject_code)) {
+              abbrev <- degree_data$subjects_data %>% 
                 filter(subject_code == !!subject_code) %>% 
                 pull(subject_abbreviation)
+                
+              subject_abbreviation <- ifelse(length(abbrev) > 0, abbrev[1], "")
               
-              if(length(abbrev) > 0) {
-                subject_abbreviations[[i]] <- abbrev[1]
+              # Check original status if student data exists
+              is_failed <- FALSE
+              if (!is.null(degree_data$student_data)) {
+                 student_record <- degree_data$student_data %>% filter(subject_code == !!subject_code)
+                 if (nrow(student_record) > 0) {
+                    original_mark <- student_record$subject_mark[1] # Already aggregated
+                    if (original_mark %in% fail_marks) {
+                      is_failed <- TRUE
+                    }
+                 }
               }
+              
+              # Construct label
+              label_prefix <- paste0("R", i, ": ", subject_abbreviation)
+              # Wrap the "(Fail)" including parentheses in a span with the fail color if needed
+              fail_span <- paste0("<span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
+              label_suffix <- ifelse(is_failed, paste0(" ", fail_span), "")
+              custom_labels[i] <- paste0(label_prefix, label_suffix)
+              
+            } else {
+              custom_labels[i] <- paste0("R", i, ":") # Empty if no subject
             }
           }
+        } else {
+           # Default labels if no recommendations yet
+           for(i in 1:6) { custom_labels[i] <- paste0("R", i, ":") }
         }
         
-        # Create custom labels with R1-R6 + abbreviations
-        custom_labels <- c(
-          paste0("R1: ", subject_abbreviations[[1]]),
-          paste0("R2: ", subject_abbreviations[[2]]),
-          paste0("R3: ", subject_abbreviations[[3]]),
-          paste0("R4: ", subject_abbreviations[[4]]),
-          paste0("R5: ", subject_abbreviations[[5]]),
-          paste0("R6: ", subject_abbreviations[[6]]),
-          translate(language, "Selected")
-        )
+        # Add the "Selected" label
+        custom_labels[7] <- translate(language, "Selected")
         
         legend_items2 <- lapply(seq_along(custom_labels), function(i) {
           tags$li(
@@ -596,7 +646,7 @@ subjectEnrollmentServer <- function(id, language) {
                 "margin-right: 8px; border: 1px solid #ccc;"
               )
             ),
-            tags$span(custom_labels[i]) 
+            tags$span(HTML(custom_labels[i])) 
           )
         })
 
