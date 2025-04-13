@@ -653,13 +653,18 @@ subjectEnrollmentServer <- function(id, language) {
           for(i in 1:min(6, length(recommended_list$subject_code))) {
             subject_code <- recommended_list$subject_code[i]
             if(!is.na(subject_code)) {
-              # Fetch full name instead of abbreviation
+              # Fetch full name
               full_name_col <- paste0("name_", language)
               subject_full_name <- degree_data$subject_names %>%
                 filter(subject_code == !!subject_code) %>%
                 pull(!!sym(full_name_col))
-
               subject_display_name <- ifelse(length(subject_full_name) > 0, subject_full_name[1], "") # Use full name or empty string
+
+              # Fetch ECTS credits
+              subject_ects <- degree_data$subjects_data %>%
+                filter(subject_code == !!subject_code) %>%
+                pull(credits)
+              ects_display <- ifelse(!is.na(subject_ects) && length(subject_ects) > 0, paste0(" (", subject_ects[1], " ECTS)"), "")
 
               # Check original status if student data exists
               is_failed <- FALSE
@@ -673,8 +678,8 @@ subjectEnrollmentServer <- function(id, language) {
                  }
               }
 
-              # Construct label using the full name
-              label_prefix <- paste0(i, ": ", subject_display_name)
+              # Construct label using the full name and ECTS
+              label_prefix <- paste0(i, ": ", subject_display_name, ects_display)
               # Wrap the "(Fail)" including parentheses in a span with the fail color if needed
               fail_span <- paste0("<span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
               label_suffix <- ifelse(is_failed, paste0(" ", fail_span), "")
