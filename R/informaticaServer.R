@@ -697,9 +697,10 @@ subjectEnrollmentServer <- function(id, language) {
         # Add the "Selected" label
         custom_labels[7] <- translate(language, "Selected")
         
-        # Generate items for the second legend (Recommendations ONLY)
-        recommendation_labels <- custom_labels[1:6] # Only first 6 labels
-        recommendation_colors <- colors2[1:6]      # Only first 6 colors
+        # --- Generate items for the second legend (Recommendations ONLY) ---
+        num_recommendations <- length(na.omit(recommended_list$subject_code))
+        recommendation_labels <- custom_labels[1:num_recommendations] # Only generated labels
+        recommendation_colors <- colors2[1:num_recommendations]      # Only needed colors
 
         legend_items2 <- lapply(seq_along(recommendation_labels), function(i) {
           tags$li(
@@ -1215,10 +1216,13 @@ subjectEnrollmentServer <- function(id, language) {
 
             # Filter the arranged distances based on prerequisites
             filtered_recommendations <- character()
-            num_recommendations_needed <- 6
+            num_recommendations_needed <- 6 # Max subjects to recommend
+            cumulative_ects <- 0
+            desired_ects <- input$desired_ects # Get value from the new slider
             idx <- 1
 
-            while(length(filtered_recommendations) < num_recommendations_needed && idx <= nrow(arranged_distances)) {
+            # Loop until we hit the subject limit, run out of subjects, or (approximately) hit the ECTS limit
+            while(length(filtered_recommendations) < num_recommendations_needed && idx <= nrow(arranged_distances) && cumulative_ects < desired_ects) {
               potential_subject <- arranged_distances$subject_code[idx]
               
               # Find standard prerequisites for this subject
@@ -1240,12 +1244,23 @@ subjectEnrollmentServer <- function(id, language) {
                 meets_ects_prereq <- FALSE
               }
 
-              # If ALL prerequisites (standard and ECTS) are met, add to filtered list
+              # If ALL prerequisites are met, check if it fits the ECTS budget
               if (all_standard_prereqs_met && meets_ects_prereq) {
-                filtered_recommendations <- c(filtered_recommendations, potential_subject)
-              }
+                # Get ECTS for the potential subject
+                subject_ects <- degree_data$subjects_data %>%
+                  filter(subject_code == potential_subject) %>%
+                  pull(credits)
+                
+                # Check if ECTS is valid and if adding it fits the budget (or if it's the first recommendation)
+                if (!is.na(subject_ects) && length(subject_ects) > 0 && is.numeric(subject_ects[1])) {
+                  if (cumulative_ects + subject_ects[1] <= desired_ects || length(filtered_recommendations) == 0) {
+                    filtered_recommendations <- c(filtered_recommendations, potential_subject)
+                    cumulative_ects <- cumulative_ects + subject_ects[1]
+                  } # else: Subject is valid but too large for the remaining budget, skip it.
+                }
+              } # else: Prerequisites not met, skip it.
               
-              idx <- idx + 1
+              idx <- idx + 1 # Move to the next potential subject
             }
             
             recommended_list$subject_code <- filtered_recommendations
@@ -1324,6 +1339,7 @@ subjectEnrollmentServer <- function(id, language) {
         updateSliderInput(session, "popularity", value = 1)
         updateSliderInput(session, "overlap", value = 1)
         updateSliderInput(session, "workload", value = 1) # Reset workload slider
+        updateSliderInput(session, "desired_ects", value = 30) # Reset ECTS slider
         
         # Reset UI elements to initial state (Step 0)
         session$sendCustomMessage(type = "steps",  message = paste0("step", enrollment_step$current_step))

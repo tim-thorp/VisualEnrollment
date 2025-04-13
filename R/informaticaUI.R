@@ -40,6 +40,19 @@ subjectEnrollmentUI <- function(id, language) {
             class="step-sliders",
             h4(translate(language, "Assign a value to the topics based on their importance:")),
             tags$div(
+              title=translate(language, "Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects."),
+              style="height: 72px; margin-bottom: 40px;",
+              sliderInput(
+                namespace("desired_ects"),
+                h4(translate(language, "Desired ECTS for Enrollment:"), icon("info")),
+                min = 6,
+                max = 36,
+                value = 30,
+                step = 6,
+                ticks = TRUE
+              )
+            ),
+            tags$div(
               title=translate(language,"Separate the most difficult subjects"),
               style="height: 72px;",
               sliderInput(
@@ -59,7 +72,7 @@ subjectEnrollmentUI <- function(id, language) {
             ),
             br(),
             tags$div(
-              title=translate(language,
+              title=translate(language, 
                 "Separate subjects that are never enrolled together"
               ),
               style="height: 72px;",
