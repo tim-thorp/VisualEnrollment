@@ -248,45 +248,89 @@ subjectEnrollmentServer <- function(id, language) {
 
         # Define passed/transferred marks for checking prerequisites
         passed_marks <- c(translate(language, "Pass"), translate(language, "Transfer"))
+        fail_marks <- c("SU", "NP", translate(language, "Fail")) # Needed for legend status
+        # Define marks considered 'earned' for ECTS calculation
+        earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", passed_marks)
 
-        # --- Get Prerequisite Info ---
+        # --- Calculate Earned ECTS --- (Do this *before* prerequisite check)
+        earned_ects <- 0 # Default to 0 if no student data
+        if (!is.null(degree_data$student_data)) {
+          passed_or_transferred_codes_for_ects <- degree_data$student_data %>%
+            filter(subject_mark %in% earned_marks_for_ects) %>%
+            pull(subject_code) %>%
+            unique()
+
+          if (length(passed_or_transferred_codes_for_ects) > 0) {
+            earned_ects <- degree_data$subjects_data %>%
+              filter(subject_code %in% passed_or_transferred_codes_for_ects) %>%
+              summarise(total_ects = sum(credits, na.rm = TRUE)) %>%
+              pull(total_ects)
+          }
+        }
+        # Ensure earned_ects is numeric, default to 0 if calculation failed
+        if (!is.numeric(earned_ects) || is.na(earned_ects)) {
+          earned_ects <- 0
+        }
+
+        # --- Get Prerequisite Info --- (Standard prerequisites)
         prerequisites <- degree_data$prerequisites_data
         subject_prereqs_codes <- prerequisites %>%
           filter(subject_code == hovered_code) %>%
           pull(prerequisite_code)
 
         # Get codes of subjects actually passed or transferred by the student
-        passed_or_transferred_codes <- subject_positions %>%
-          filter(subject_mark %in% passed_marks) %>%
+        passed_or_transferred_codes <- subject_positions %>% # Use subject_positions for current status
+          filter(subject_mark %in% passed_marks) %>%         # based on passed_marks
           pull(subject_code) %>%
           unique()
 
-        prereq_display_elements <- NULL # Initialize to hold HTML elements
+        prereq_display_items <- list() # Initialize as a list
+
+        # --- Handle Standard Prerequisites ---
         if (length(subject_prereqs_codes) > 0) {
           # Filter the names data frame
           filtered_names <- degree_data$subject_names %>%
             filter(subject_code %in% subject_prereqs_codes)
 
-          # Create the 2-column df
           dynamic_name_col <- paste0("name_", language)
           prereq_names_df <- filtered_names[, c("subject_code", dynamic_name_col)]
 
-          # Create list items with emojis and line breaks
           prereq_display_items <- lapply(subject_prereqs_codes, function(code) {
             is_fulfilled <- code %in% passed_or_transferred_codes
             emoji <- ifelse(is_fulfilled, "✅", "❌")
             prereq_name <- prereq_names_df[prereq_names_df$subject_code == code, 2]
-            # Return a tagList with text and a line break
             tagList(paste(emoji, prereq_name), tags$br())
           })
-          # The result 'prereq_display_items' is a list of tagLists
-          prereq_display_elements <- tagList(prereq_display_items)
+        }
 
+        # --- Handle Special ECTS Prerequisites (if applicable) ---
+        required_ects <- NA
+        ects_prereq_text <- ""
+        if (hovered_code == "05.615") { # Prácticas en Empresa
+          required_ects <- 120
+          ects_prereq_text <- paste(translate(language, "Have completed at least"), required_ects, "ECTS")
+        } else if (hovered_code == "05.616") { # Trabajo Final de Grado
+          required_ects <- 180
+          ects_prereq_text <- paste(translate(language, "Have completed at least"), required_ects, "ECTS")
+        }
+
+        if (!is.na(required_ects)) {
+          ects_fulfilled <- earned_ects >= required_ects
+          emoji <- ifelse(ects_fulfilled, "✅", "❌")
+          # Create the ECTS prerequisite item and add it to the list
+          ects_prereq_item <- tagList(paste(emoji, ects_prereq_text), tags$br())
+          prereq_display_items[[length(prereq_display_items) + 1]] <- ects_prereq_item
+        }
+
+        # --- Convert list of items to displayable elements ---
+        prereq_display_elements <- NULL
+        if (length(prereq_display_items) > 0) {
+          prereq_display_elements <- tagList(prereq_display_items)
         } else {
-          # Display "None" if no prerequisites
+          # Display "None" only if there are no standard OR ECTS prerequisites
           prereq_display_elements <- tags$span(translate(language, "None"))
         }
-        # --- End Prerequisite Info ---
+        # --- End Prerequisite Info Processing ---
 
         # Generate HTML directly instead of calling create_subject_hover_info
         html <- tags$div(
@@ -312,12 +356,14 @@ subjectEnrollmentServer <- function(id, language) {
           {
             # Check against the original display_mark before modification
             if (!(display_mark %in% passed_marks)) {
-              # Use a div to contain the label and the list/span
-              tags$div( 
-                tags$strong(paste0(translate(language, "Prerequisites:"), " ")), # Bold label
-                tags$br(), # Add line break
-                # Display the tagList (items with <br>) or the "None" span
-                prereq_display_elements
+              tagList(
+                # --- Display Combined Prerequisites ---
+                tags$div(
+                  style = "margin-top: 8px;",
+                  tags$strong(paste0(translate(language, "Prerequisites:"), " ")), # Changed label
+                  tags$br(),
+                  prereq_display_elements # Display the combined list
+                )
               )
             }
           }
@@ -1142,6 +1188,26 @@ subjectEnrollmentServer <- function(id, language) {
             # Get prerequisite data
             prerequisites <- degree_data$prerequisites_data
 
+            # --- Calculate Earned ECTS for recommendation check ---
+            earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Pass"), translate(language, "Transfer"))
+            earned_ects_for_rec <- 0 # Default to 0
+            if (!is.null(degree_data$student_data)) {
+              passed_or_transferred_codes_for_ects <- degree_data$student_data %>%
+                filter(subject_mark %in% earned_marks_for_ects) %>%
+                pull(subject_code) %>%
+                unique()
+              if (length(passed_or_transferred_codes_for_ects) > 0) {
+                earned_ects_for_rec <- degree_data$subjects_data %>%
+                  filter(subject_code %in% passed_or_transferred_codes_for_ects) %>%
+                  summarise(total_ects = sum(credits, na.rm = TRUE)) %>%
+                  pull(total_ects)
+              }
+            }
+            if (!is.numeric(earned_ects_for_rec) || is.na(earned_ects_for_rec)) {
+              earned_ects_for_rec <- 0
+            }
+            # --- End ECTS Calculation ---
+
             # Filter the arranged distances based on prerequisites
             filtered_recommendations <- character()
             num_recommendations_needed <- 6
@@ -1150,19 +1216,27 @@ subjectEnrollmentServer <- function(id, language) {
             while(length(filtered_recommendations) < num_recommendations_needed && idx <= nrow(arranged_distances)) {
               potential_subject <- arranged_distances$subject_code[idx]
               
-              # Find prerequisites for this subject
+              # Find standard prerequisites for this subject
               subject_prereqs <- prerequisites %>% 
                 filter(subject_code == potential_subject) %>% 
                 pull(prerequisite_code)
 
-              # Check if all prerequisites are met
-              all_prereqs_met <- TRUE
+              # Check if all standard prerequisites are met
+              all_standard_prereqs_met <- TRUE
               if (length(subject_prereqs) > 0) {
-                all_prereqs_met <- all(subject_prereqs %in% passed_or_transferred)
+                all_standard_prereqs_met <- all(subject_prereqs %in% passed_or_transferred)
               }
               
-              # If all prerequisites are met, add to filtered list
-              if (all_prereqs_met) {
+              # Check special ECTS prerequisites (if applicable)
+              meets_ects_prereq <- TRUE # Assume true unless proven otherwise
+              if (potential_subject == "05.615" && earned_ects_for_rec < 120) {
+                meets_ects_prereq <- FALSE
+              } else if (potential_subject == "05.616" && earned_ects_for_rec < 180) {
+                meets_ects_prereq <- FALSE
+              }
+
+              # If ALL prerequisites (standard and ECTS) are met, add to filtered list
+              if (all_standard_prereqs_met && meets_ects_prereq) {
                 filtered_recommendations <- c(filtered_recommendations, potential_subject)
               }
               
