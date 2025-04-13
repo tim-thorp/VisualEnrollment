@@ -572,13 +572,15 @@ subjectEnrollmentServer <- function(id, language) {
         colors1 <- color_palette[1:6]
         legend_items1 <- lapply(seq_along(labels1), function(i) {
           tags$li(
-            style = "display: flex; align-items: center; margin-bottom: 5px;",
+            style = "display: flex; align-items: baseline; margin-bottom: 5px;",
             tags$span(
               style = paste0(
                 "display: inline-block; ",
                 "width: 15px; height: 15px; ",
                 "background-color: ", colors1[i], "; ", 
-                "margin-right: 8px; border: 1px solid #ccc;"
+                "margin-right: 8px; border: 1px solid #ccc;",
+                "flex-shrink: 0; box-sizing: border-box;",
+                "position: relative; top: 3px;"
               )
             ),
             tags$span(labels1[i]) 
@@ -598,12 +600,14 @@ subjectEnrollmentServer <- function(id, language) {
           for(i in 1:min(6, length(recommended_list$subject_code))) {
             subject_code <- recommended_list$subject_code[i]
             if(!is.na(subject_code)) {
-              abbrev <- degree_data$subjects_data %>% 
-                filter(subject_code == !!subject_code) %>% 
-                pull(subject_abbreviation)
-                
-              subject_abbreviation <- ifelse(length(abbrev) > 0, abbrev[1], "")
-              
+              # Fetch full name instead of abbreviation
+              full_name_col <- paste0("name_", language)
+              subject_full_name <- degree_data$subject_names %>%
+                filter(subject_code == !!subject_code) %>%
+                pull(!!sym(full_name_col))
+
+              subject_display_name <- ifelse(length(subject_full_name) > 0, subject_full_name[1], "") # Use full name or empty string
+
               # Check original status if student data exists
               is_failed <- FALSE
               if (!is.null(degree_data$student_data)) {
@@ -615,21 +619,21 @@ subjectEnrollmentServer <- function(id, language) {
                     }
                  }
               }
-              
-              # Construct label
-              label_prefix <- paste0("R", i, ": ", subject_abbreviation)
+
+              # Construct label using the full name
+              label_prefix <- paste0(i, ": ", subject_display_name)
               # Wrap the "(Fail)" including parentheses in a span with the fail color if needed
               fail_span <- paste0("<span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
               label_suffix <- ifelse(is_failed, paste0(" ", fail_span), "")
               custom_labels[i] <- paste0(label_prefix, label_suffix)
-              
+
             } else {
-              custom_labels[i] <- paste0("R", i, ":") # Empty if no subject
+              custom_labels[i] <- paste0(i, ":") # Empty if no subject
             }
           }
         } else {
            # Default labels if no recommendations yet
-           for(i in 1:6) { custom_labels[i] <- paste0("R", i, ":") }
+           for(i in 1:6) { custom_labels[i] <- paste0(i, ":") }
         }
         
         # Add the "Selected" label
@@ -637,13 +641,15 @@ subjectEnrollmentServer <- function(id, language) {
         
         legend_items2 <- lapply(seq_along(custom_labels), function(i) {
           tags$li(
-            style = "display: flex; align-items: center; margin-bottom: 5px;",
+            style = "display: flex; align-items: baseline; margin-bottom: 5px;",
             tags$span(
               style = paste0(
                 "display: inline-block; ",
                 "width: 15px; height: 15px; ",
                 "background-color: ", colors2[i], "; ", 
-                "margin-right: 8px; border: 1px solid #ccc;"
+                "margin-right: 8px; border: 1px solid #ccc;",
+                "flex-shrink: 0; box-sizing: border-box;",
+                "position: relative; top: 3px;"
               )
             ),
             tags$span(HTML(custom_labels[i])) 
