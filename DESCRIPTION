@@ -5,7 +5,7 @@ Authors@R: c(
     person("Jordi", "Rosell", , "jroselln@gmail.com", role = c("aut", "cre")),
     person("Miguel Angel", "Sosvilla Luis", , "msosvi@gmail.com", role = "ctb")
   )
-Description: App that visually recomends enrollment to UOC students.
+Description: App that visually recommends enrollment to UOC students.
 License: file LICENSE
 Depends:
     R (>= 4.2.0)
