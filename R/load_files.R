@@ -130,13 +130,14 @@ load_files <- function(){
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
 
-  files$Dreq_INFORMATICA <- read.table(system.file("data_files", "Dreq_INFORMATICA.csv", 
-                                                           package = "visualenrollment"),
-                                          header=TRUE,
-                                          sep=";",
-                                          colClasses=c("numeric", "numeric", "numeric")) 
+  # Load prerequisites file
+  files$prerequisites_INFORMATICA <- read.table(system.file("data_files", "prerequisites_INFORMATICA.csv", 
+                                                            package = "visualenrollment"),
+                                                header=TRUE,
+                                                sep=";",
+                                                colClasses=c("character", "character"))
   # Rename columns to be more descriptive
-  colnames(files$Dreq_INFORMATICA) <- c("subject_code_1", "subject_code_2", "prerequisite_score")
+  colnames(files$prerequisites_INFORMATICA) <- c("prerequisite_code", "subject_code")
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
 

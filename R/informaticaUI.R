@@ -81,27 +81,6 @@ subjectEnrollmentUI <- function(id, language) {
             br(),
             tags$div(
               title=translate(language, 
-                "Separate subjects that are taken in different semesters"
-              ),
-              style="height: 72px;",
-              sliderInput(
-                namespace("prerequisite"),
-                h4(translate(language, "Previous requirements:"), icon("info")),
-                min = 1,
-                max = 5,
-                value = 5,
-                step = 1,
-                ticks=F
-              )
-            ),
-            tags$div(
-              tags$span(translate(language, "Less important")),
-              tags$span(translate(language, "More important"), style="float: right"),
-              style = "margin-top: 10px"
-            ),
-            br(),
-            tags$div(
-              title=translate(language, 
                 "Separate the subjects that have more overlapping deadlines"
               ),
               style="height: 72px;",

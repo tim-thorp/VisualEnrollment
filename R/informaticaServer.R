@@ -63,9 +63,9 @@ subjectEnrollmentServer <- function(id, language) {
             subject_overlap_data = NULL,
             difficulty_distance_matrix = NULL,
             popularity_distance_matrix = NULL, 
-            prerequisite_distance_matrix = NULL, 
             overlap_distance_matrix = NULL, 
-            semester_distance_matrix = NULL
+            semester_distance_matrix = NULL,
+            prerequisites_data = NULL
           ))
         }
         
@@ -122,19 +122,15 @@ subjectEnrollmentServer <- function(id, language) {
         difficulty_distance_matrix=difficulty_distance_matrix/max(difficulty_distance_matrix)
         raw_matrix_data=NULL
         
-        # JULIA 24/12/2022 prerequisitos 
-        raw_matrix_data <- data_files[[paste0("Dreq_", selected_degree)]]        
-        prerequisite_distance_matrix = matrix(raw_matrix_data$prerequisite_score, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
-        colnames(prerequisite_distance_matrix)=subjects_data$subject_code
-        prerequisite_distance_matrix=prerequisite_distance_matrix/max(prerequisite_distance_matrix)
-        raw_matrix_data=NULL
-        
         # JULIA 27/12/2022 ordenación semestral 
         raw_matrix_data <- data_files[[paste0("Dabs_", selected_degree)]]        
         semester_distance_matrix = matrix(raw_matrix_data$semester_distance, nrow=length(subjects_data$subject_code), ncol=length(subjects_data$subject_code), byrow=T)
         colnames(semester_distance_matrix)=subjects_data$subject_code
         semester_distance_matrix=semester_distance_matrix/max(semester_distance_matrix)
         raw_matrix_data=NULL
+        
+        # Load prerequisites data for the new system
+        prerequisites_data <- data_files[[paste0("prerequisites_", selected_degree)]]
         
         # dadesEST
         student_data = NULL
@@ -182,9 +178,9 @@ subjectEnrollmentServer <- function(id, language) {
           subject_overlap_data = subject_overlap_data,
           difficulty_distance_matrix = difficulty_distance_matrix, 
           popularity_distance_matrix = popularity_distance_matrix, 
-          prerequisite_distance_matrix = prerequisite_distance_matrix, 
           overlap_distance_matrix = overlap_distance_matrix, 
-          semester_distance_matrix = semester_distance_matrix
+          semester_distance_matrix = semester_distance_matrix,
+          prerequisites_data = prerequisites_data
         ))
       })  
       
@@ -199,7 +195,89 @@ subjectEnrollmentServer <- function(id, language) {
         degree_data <- degree_data()
         hovered$subject_type <- get_subject_type(language, degree_data, hovered)
         hovered$name <- get_subject_name(language, degree_data, hovered)
-        html = create_subject_hover_info(input, hovered)
+
+        # --- Get Current Subject Mark ---
+        # Ensure subject_positions exists and is up-to-date
+        req(exists("subject_positions"))
+        hovered_subject_mark <- subject_positions %>%
+          filter(subject_code == hovered$subject_code) %>%
+          pull(subject_mark) %>%
+          as.character() # Ensure it's character for comparison
+
+        # Define passed/transferred marks for checking
+        passed_marks <- c(translate(language, "Pass"), translate(language, "Transfer"))
+
+        # --- Get Prerequisite Info ---
+        prerequisites <- degree_data$prerequisites_data
+        subject_prereqs_codes <- prerequisites %>%
+          filter(subject_code == hovered$subject_code) %>%
+          pull(prerequisite_code)
+
+        # Get codes of subjects actually passed or transferred by the student
+        passed_or_transferred_codes <- subject_positions %>%
+          filter(subject_mark %in% passed_marks) %>%
+          pull(subject_code) %>%
+          unique()
+
+        prereq_display_elements <- NULL # Initialize to hold HTML elements
+        if (length(subject_prereqs_codes) > 0) {
+          # Filter the names data frame
+          filtered_names <- degree_data$subject_names %>%
+            filter(subject_code %in% subject_prereqs_codes)
+
+          # Create the 2-column df
+          dynamic_name_col <- paste0("name_", language)
+          prereq_names_df <- filtered_names[, c("subject_code", dynamic_name_col)]
+
+          # Create list items with emojis and line breaks
+          prereq_display_items <- lapply(subject_prereqs_codes, function(code) {
+            is_fulfilled <- code %in% passed_or_transferred_codes
+            emoji <- ifelse(is_fulfilled, "✅", "❌")
+            prereq_name <- prereq_names_df[prereq_names_df$subject_code == code, 2]
+            # Return a tagList with text and a line break
+            tagList(paste(emoji, prereq_name), tags$br())
+          })
+          # The result 'prereq_display_items' is a list of tagLists
+          prereq_display_elements <- tagList(prereq_display_items)
+
+        } else {
+          # Display "None" if no prerequisites
+          prereq_display_elements <- tags$span(translate(language, "None"))
+        }
+        # --- End Prerequisite Info ---
+
+        # Generate HTML directly instead of calling create_subject_hover_info
+        html <- tags$div(
+          style = paste0(
+            "position: absolute; ",
+            "background-color: rgba(245, 245, 245, 0.85); ", # Slightly transparent background
+            "border: 1px solid #ccc; ",
+            "padding: 10px; ",
+            "border-radius: 5px; ",
+            "box-shadow: 2px 2px 5px rgba(0,0,0,0.2); ",
+            "pointer-events: none; ", # Important: prevents hover issues
+            # Use coords_css for positioning relative to the plot container
+            "left:", input$graf_hover$coords_css$x + 15, "px; ", # Offset from cursor
+            "top:", input$graf_hover$coords_css$y + 15, "px;",
+            "z-index: 1000;" # Ensure it's above other elements
+          ),
+          tags$h5(hovered$name, style = "margin-top: 0; margin-bottom: 5px; font-weight: bold;"),
+          tags$p(paste(translate(language, "Type:"), hovered$subject_type), style = "margin-bottom: 5px;"),
+          tags$p(paste(translate(language, "Status:"), hovered_subject_mark), style = "margin-bottom: 5px;"),
+          # --- Add Prerequisite Section (conditionally) ---
+          {
+            if (!(hovered_subject_mark %in% passed_marks)) {
+              # Use a div to contain the label and the list/span
+              tags$div( 
+                tags$strong(paste0(translate(language, "Prerequisites:"), " ")), # Bold label
+                tags$br(), # Add line break
+                # Display the tagList (items with <br>) or the "None" span
+                prereq_display_elements
+              )
+            }
+          }
+          # --- End Prerequisite Section ---
+        )
         return(html)
       })
       
@@ -236,10 +314,6 @@ subjectEnrollmentServer <- function(id, language) {
         if (is.null(degree_data$difficulty_distance_matrix)) return(NULL)
         difficulty_distance_matrix = degree_data$difficulty_distance_matrix
         
-        # JULIA 24/12/2022 adaptar la matriz de prerequisitos
-        if (is.null(degree_data$prerequisite_distance_matrix)) return(NULL)
-        prerequisite_distance_matrix = degree_data$prerequisite_distance_matrix
-        
         # JULIA 27/12/2022 adaptar la matriz con el plan de estudios 
         if (is.null(degree_data$semester_distance_matrix)) return(NULL)
         semester_distance_matrix=degree_data$semester_distance_matrix
@@ -248,14 +322,12 @@ subjectEnrollmentServer <- function(id, language) {
         # creació del gràfic, de moment és un plot
         all_inputs_valid=!is.null(input$difficulty) &&
           !is.null(input$semester) &&
-          !is.null(input$prerequisite) &&
           !is.null(input$popularity) &&
           !is.null(input$overlap)
         
         if (all_inputs_valid) {
           difficulty <- input$difficulty
           semester <- input$semester
-          prerequisite <- input$prerequisite
           popularity <- input$popularity
           overlap <- input$overlap 
           
@@ -266,7 +338,6 @@ subjectEnrollmentServer <- function(id, language) {
             # JULIA 23/12/2022 cambiar matrices
             (difficulty/weight_denominator)*difficulty_distance_matrix +
               (overlap/weight_denominator)*overlap_distance_matrix + 
-              (prerequisite/weight_denominator)*prerequisite_distance_matrix +
               (popularity/weight_denominator)*popularity_distance_matrix +
               (semester/weight_denominator)*semester_distance_matrix,
             length(subjects),length(subjects))
@@ -735,8 +806,6 @@ subjectEnrollmentServer <- function(id, language) {
                       br(),
                       translate(language, "Popularity:"),  paste0(input$popularity, "/5"),
                       br(),
-                      translate(language, "Previous requirements:"),  paste0(input$prerequisite, "/5"),
-                      br(),
                       translate(language, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
                       br(),
                       br(),
@@ -953,17 +1022,52 @@ subjectEnrollmentServer <- function(id, language) {
             arranged_distances <- subject_distances %>% arrange(desc(d))
           }
           
-          recommended_list$subject_code <- arranged_distances %>% 
-            head(n = 6) %>%
-            pull(subject_code)
-        }
-        
-        # recomendador aleatorio
-        if (input$recommender==translate(language,"Random")) {
-          recommended_list$subject_code <-
-            enrollable %>%
-            sample_n(6) %>%
-            pull(subject_code)
+          # PREREQUISITE CHECK
+          if (input$recommender==translate(language,"Distance")) {
+            # Get passed and transferred subject codes
+            passed_or_transferred <- subject_positions %>% 
+              filter(subject_mark %in% c(translate(language, "Pass"), translate(language, "Transfer"))) %>% 
+              pull(subject_code) %>% 
+              unique()
+
+            # Get prerequisite data
+            prerequisites <- degree_data$prerequisites_data
+
+            # Filter the arranged distances based on prerequisites
+            filtered_recommendations <- character()
+            num_recommendations_needed <- 6
+            idx <- 1
+
+            while(length(filtered_recommendations) < num_recommendations_needed && idx <= nrow(arranged_distances)) {
+              potential_subject <- arranged_distances$subject_code[idx]
+              
+              # Find prerequisites for this subject
+              subject_prereqs <- prerequisites %>% 
+                filter(subject_code == potential_subject) %>% 
+                pull(prerequisite_code)
+
+              # Check if all prerequisites are met
+              all_prereqs_met <- TRUE
+              if (length(subject_prereqs) > 0) {
+                all_prereqs_met <- all(subject_prereqs %in% passed_or_transferred)
+              }
+              
+              # If all prerequisites are met, add to filtered list
+              if (all_prereqs_met) {
+                filtered_recommendations <- c(filtered_recommendations, potential_subject)
+              }
+              
+              idx <- idx + 1
+            }
+            
+            recommended_list$subject_code <- filtered_recommendations
+          } else {
+            # Original random recommender logic (unchanged)
+            recommended_list$subject_code <-
+                enrollable %>%
+                sample_n(6) %>%
+                pull(subject_code)
+          }
         }
         
         # show_translated_notice(language, "The system has marked in shades of yellow the ranking of the 6 most recommended subjects for your enrollment.")
@@ -1030,7 +1134,6 @@ subjectEnrollmentServer <- function(id, language) {
         # Reset sliders to default values
         updateSliderInput(session, "difficulty", value = 1)
         updateSliderInput(session, "popularity", value = 1)
-        updateSliderInput(session, "prerequisite", value = 5)
         updateSliderInput(session, "overlap", value = 1)
         updateSliderInput(session, "workload", value = 1) # Reset workload slider
         

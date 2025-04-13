@@ -75,27 +75,6 @@ search_subjects <- function(language, degree_data, subjects_df, input) {
   return(subjects_df)
 }
 
-create_subject_hover_info <- function(input, hovered) {
-  # Get the hover coordinates relative to the CSS container
-  x_pos <- input$graf_hover$coords_css$x
-  y_pos <- input$graf_hover$coords_css$y
-  
-  div(
-    class = "graf_hover_info_tooltip",
-    style = paste0(
-      "position: absolute;",
-      "left: ", x_pos, "px;",
-      "top: ", y_pos, "px;",
-      "display: block;",
-      "transform: translate(-50%, -100%);"  # Center horizontally and position above cursor
-    ),
-    p(hovered$full_name),
-    p(hovered$subject_type),
-    p(hovered$subject_mark)
-  )
-}
-
-
 get_subject_name <- function(language, degree_data, hovered) {
   subject_name <- degree_data$subject_names %>% 
     filter(str_detect(subject_code, paste0("^",hovered$subject_code,"$"))) %>% 
