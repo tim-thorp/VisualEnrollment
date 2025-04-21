@@ -38,7 +38,9 @@ subjectEnrollmentUI <- function(id, language) {
           ),
           tags$div(
             class="step-sliders",
-            h4(translate(language, "Assign a value to the topics based on their importance:")),
+            style="margin-bottom: 15px;",
+            # --- Main Settings ---
+            h4(tags$strong(translate(language, "Main Settings")), style="margin-bottom: 15px;"),
             tags$div(
               title=translate(language, "Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects."),
               style="height: 72px; margin-bottom: 40px;",
@@ -52,33 +54,51 @@ subjectEnrollmentUI <- function(id, language) {
                 ticks = TRUE
               )
             ),
+            # --- Itinerary Dropdown ---
+            tags$div(
+              title=translate(language, "Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet."),
+              style="height: 72px; margin-bottom: 40px;",
+              selectInput(
+                namespace("itinerary"),
+                h4(translate(language, "Choose Itinerary:"), icon("info")),
+                choices = setNames(
+                  c("1", "2", "3", "4", "5", "0"), # Using path numbers as values, 0 for "Not Sure"
+                  c(
+                    translate(language, "Computer Engineering"),
+                    translate(language, "Software Engineering"),
+                    translate(language, "Computing"),
+                    translate(language, "Information Systems"),
+                    translate(language, "Information Technology"),
+                    translate(language, "Not Sure")
+                  )
+                ),
+                selected = "0" # Default to "Not Sure"
+              )
+            ),
+            # --- Advanced Settings (Map Appearance) ---
+            hr(), # Add a horizontal rule separator
+            h4(tags$strong(translate(language, "Advanced Settings")), style="margin-top: 20px; margin-bottom: 15px;"),
+            p(tags$small(translate(language, "Assign a value to the topics based on their importance:")), style="font-style: italic; margin-bottom: 20px;"),
+            # --- END Itinerary Dropdown ---
             tags$div(
               title=translate(language,"Separate the most difficult subjects"),
-              style="height: 72px;",
               sliderInput(
                 namespace("difficulty"),
-                h4(translate(language,"Difficulty:"), icon("info")),
+                tags$label(tags$strong(translate(language,"Difficulty:")), icon("info")),
                 min = 1, 
                 max = 5, 
                 value = 1,
                 step = 1,
                 ticks=F
-              )
+              ),
             ),
-            tags$div(
-              tags$span(translate(language, "Less important")),
-              tags$span(translate(language, "More important"), style="float: right"),
-              style = "margin-top: 10px"
-            ),
-            br(),
             tags$div(
               title=translate(language, 
                 "Separate subjects that are never enrolled together"
               ),
-              style="height: 72px;",
               sliderInput(
                 namespace("popularity"),
-                h4(translate(language, "Popularity:"), icon("info")),
+                tags$label(tags$strong(translate(language, "Popularity:")), icon("info")),
                 min = 1,
                 max = 5,
                 value = 1,
@@ -86,33 +106,26 @@ subjectEnrollmentUI <- function(id, language) {
                 ticks=F
               )
             ),
-            tags$div(
-              tags$span(translate(language, "Less important")),
-              tags$span(translate(language, "More important"), style="float: right"),
-              style = "margin-top: 10px"
-            ),
-            br(),
-            tags$div(
-              title=translate(language, 
+            tags$div( # Start of containing div
+              title=translate(language,
                 "Separate the subjects that have more overlapping deadlines"
               ),
-              style="height: 72px;",
               sliderInput(
                 namespace("overlap"),
-                h4(translate(language, "Overlaps between deadlines:"), icon("info")),
+                tags$label(tags$strong(translate(language, "Overlaps between deadlines:")), icon("info")),
                 min = 1,
-                max = 5, 
+                max = 5,
                 value = 1,
                 step = 1,
                 ticks=F
-              )
-            ),
+              ), # End sliderInput
+              style="margin-bottom: 0px;"
+            ), # End of containing div
+            # Add min/max labels below the last slider for context
             tags$div(
               tags$span(translate(language, "Less important")),
-              tags$span(translate(language, "More important"), style="float: right"),
-              style = "margin-top: 10px"
-            ),
-            br()
+              tags$span(translate(language, "More important"), style="float: right")
+            )
           ),
           tags$div(
             class="step-recommend",

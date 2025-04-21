@@ -246,6 +246,29 @@ subjectEnrollmentServer <- function(id, language) {
         }
         # Add other explicit translations if needed, otherwise keep display_mark
 
+        # --- Add explanation if status is "Not available" ---
+        status_text_final <- status_text # Default to the base status
+        if (display_mark == translate(language, "Not available")) {
+             reason_code <- subject_positions %>%
+                 filter(subject_code == hovered_code) %>%
+                 pull(unavailability_reason)
+             
+             # Ensure reason_code is not NA and has length > 0
+             if (!is.na(reason_code) && length(reason_code) > 0 && nchar(reason_code[1]) > 0) {
+                  reason_english_key <- switch(reason_code[1],
+                     "impi_rule" = "Not available (You have already passed Algebra, Mathemetical Analysis, or Statistics)",
+                     "pcap_rule" = "Not available (You have already passed Fund./Prac. Prog. or OOP)",
+                     "semester_rule" = "Not available (Not offered this semester)",
+                     NA # Default if code doesn't match
+                  )
+ 
+                  if(!is.na(reason_english_key)) {
+                      status_text_final <- translate(language, reason_english_key)
+                   }
+              }
+          }
+        # --- End "Not available" explanation ---
+
         # Define passed/transferred marks for checking prerequisites
         passed_marks <- c(translate(language, "Pass"), translate(language, "Transfer"))
         fail_marks <- c("SU", "NP", translate(language, "Fail")) # Needed for legend status
@@ -332,6 +355,54 @@ subjectEnrollmentServer <- function(id, language) {
         }
         # --- End Prerequisite Info Processing ---
 
+        # --- Itinerary Info Processing ---
+        itinerary_display_elements <- NULL # Default to NULL
+
+        # Helper function to get translated itinerary name from path number
+        get_itinerary_name <- function(path_num, lang) {
+           switch(path_num,
+             "1" = translate(lang, "Computer Engineering"),
+             "2" = translate(lang, "Software Engineering"),
+             "3" = translate(lang, "Computing"),
+             "4" = translate(lang, "Information Systems"),
+             "5" = translate(lang, "Information Technology"),
+             "" # Default: Should not happen for valid paths
+           )
+        }
+
+        # Only process if subject is not passed/transferred
+        if (!(display_mark %in% passed_marks)) {
+            hovered_subject_details <- degree_data$subjects_data %>% filter(subject_code == hovered_code)
+            if (nrow(hovered_subject_details) > 0) {
+                subject_path_str <- as.character(hovered_subject_details$path[1]) # Ensure character
+                subject_type <- hovered_subject_details$type[1]
+
+                # Only show itinerary info for Optional subjects (Type P)
+                if (subject_type == "P" && subject_path_str != "0") { # Path 0 is not an itinerary
+                    subject_paths <- unlist(str_split(subject_path_str, "_")) # Split for multiple itineraries (e.g., "1_5")
+                    selected_itinerary_path <- input$itinerary # User's choice ("0" means Not Sure)
+
+                    itinerary_items <- lapply(subject_paths, function(path_num) {
+                        itinerary_name <- get_itinerary_name(path_num, language)
+                        if (nchar(itinerary_name) > 0) {
+                           # Determine emoji: Green ONLY if user selected this specific itinerary
+                           emoji <- ifelse(selected_itinerary_path != "0" && path_num == selected_itinerary_path, "🟢", "🟡")
+                           tagList(paste(emoji, itinerary_name), tags$br())
+                        } else {
+                           NULL # Skip if name is empty (invalid path?)
+                        }
+                    })
+                    # Filter out NULLs from the list
+                    itinerary_items <- Filter(Negate(is.null), itinerary_items)
+
+                    if(length(itinerary_items) > 0) {
+                        itinerary_display_elements <- tagList(itinerary_items)
+                    }
+                }
+            }
+        }
+        # --- End Itinerary Info Processing ---
+
         # Generate HTML directly instead of calling create_subject_hover_info
         html <- tags$div(
           style = paste0(
@@ -348,10 +419,10 @@ subjectEnrollmentServer <- function(id, language) {
             "z-index: 1000;" # Ensure it's above other elements
           ),
           tags$h5(hovered$name, style = "margin-top: 0; margin-bottom: 5px; font-weight: bold;"),
-          tags$p(paste0(subject_credits, " ECTS"), style = "margin-bottom: 5px;"),
-          tags$p(paste(translate(language, "Type:"), hovered$subject_type), style = "margin-bottom: 5px;"),
+          # Combined Type and ECTS line
+          tags$p(paste(hovered$subject_type, "|", subject_credits, "ECTS"), style = "margin-bottom: 5px;"),
           # Use the potentially modified status_text here, wrapped in HTML()
-          tags$p(HTML(paste(translate(language, "Status:"), status_text)), style = "margin-bottom: 5px;"),
+          tags$p(HTML(paste(translate(language, "Status:"), status_text_final)), style = "margin-bottom: 5px;"),
           # --- Add Prerequisite Section (conditionally) ---
           {
             # Check against the original display_mark before modification
@@ -366,8 +437,17 @@ subjectEnrollmentServer <- function(id, language) {
                 )
               )
             }
-          }
-          # --- End Prerequisite Section ---
+          },
+          # --- Display Itinerary Section (Conditionally) ---
+          if (!is.null(itinerary_display_elements)) {
+            tags$div(
+              style = "margin-top: 8px;",
+              tags$strong(paste0(translate(language, "Itinerary:"), " ")),
+              tags$br(),
+              itinerary_display_elements
+            )
+          },
+          # --- End Itinerary Section ---
         )
         return(html)
       })
@@ -491,20 +571,54 @@ subjectEnrollmentServer <- function(id, language) {
               subject_coordinates$subject_mark=translate(language, "Pending")
             }
             
+            # Initialize unavailability_reason column using mutate right after data setup
+            subject_coordinates <- subject_coordinates %>% mutate(unavailability_reason = NA_character_)
+            
             # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
             # ordenado
             subject_coordinates$full_name=degree_data$subject_names[[paste0("name_",language)]]
             subject_coordinates$full_name=paste0(subject_coordinates$full_name," (",subject_coordinates$subject_abbreviation,")")
             
-            # JULIA 28/12/2022 esto va lento
-            #asignatures <- tibble(
-            #  ass = degree_data$subject_names[["ass"]],
-            #  noms = degree_data$subject_names[[paste0("name_",language)]]
-            #)
-            #subject_coordinates <- left_join (subject_coordinates, asignatures) %>%
-            #  mutate(full_name = paste0(abrv, ": ", noms))
+            # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
+            # --- Apply specific rule for IMpI (05.614) ---
+            if (!is.null(input$idp) && input$idp != "---") {
+                 math_prereq_codes <- c("05.557", "05.558", "05.568")
+                 # Define FINAL passed/transfer marks (raw codes) - needed for rule overrides
+                 final_passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda")
+                 passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Pass"), translate(language, "Transfer"))
+ 
+                 passed_math_subjects <- student_data %>%
+                     filter(subject_code %in% math_prereq_codes & subject_mark %in% passed_transfer_marks) %>%
+                     nrow()
+ 
+                 if (passed_math_subjects > 0) {
+                      subject_coordinates <- subject_coordinates %>%
+                          mutate(
+                              unavailability_reason = ifelse(subject_code == "05.614" & !(subject_mark %in% final_passed_transfer_marks), "impi_rule", unavailability_reason),
+                              subject_mark = ifelse(subject_code == "05.614" & !(subject_mark %in% final_passed_transfer_marks), translate(language, "Not available"), subject_mark)
+                          )
+                 }
+             }
+             # --- End IMpI rule ---
             
-            # glimpse(subject_coordinates)
+            # --- Apply specific rule for PCAP (22.400) ---
+            if (!is.null(input$idp) && input$idp != "---") {
+                prog_prereq_codes <- c("05.554", "05.555", "05.564")
+                # passed_transfer_marks is already defined above for IMpI
+
+                passed_prog_subjects <- student_data %>%
+                    filter(subject_code %in% prog_prereq_codes & subject_mark %in% passed_transfer_marks) %>%
+                    nrow()
+
+                if (passed_prog_subjects > 0) {
+                    subject_coordinates <- subject_coordinates %>%
+                        mutate(
+                            unavailability_reason = ifelse(subject_code == "22.400" & !(subject_mark %in% final_passed_transfer_marks), "pcap_rule", unavailability_reason),
+                            subject_mark = ifelse(subject_code == "22.400" & !(subject_mark %in% final_passed_transfer_marks), translate(language, "Not available"), subject_mark)
+                        )
+                }
+            }
+            # --- End PCAP rule ---
             
             # JULIA 09/01/2023 cambiar full_name por abrv
             subject_coordinates <- subject_coordinates %>% 
@@ -519,10 +633,16 @@ subjectEnrollmentServer <- function(id, language) {
             
             if (!is.null(input$selected_semester)) {
               subject_coordinates <- subject_coordinates %>% 
-                mutate(subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester), translate(language,"Not available"), subject_mark))
+                mutate(
+                  unavailability_reason = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), "semester_rule", unavailability_reason),
+                  subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                )
             } else { 
               subject_coordinates <- subject_coordinates %>% 
-                mutate(subject_mark = ifelse(!semester_number %in% c(0,1), translate(language,"Not available"), subject_mark))
+                mutate(
+                  unavailability_reason = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), "semester_rule", unavailability_reason),
+                  subject_mark = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                )
             }
             
             
@@ -1128,36 +1248,113 @@ subjectEnrollmentServer <- function(id, language) {
           filter(subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Selected")) | str_detect(subject_mark, "^(R1|R2|R3|R4|R5|R6)")
         )
         
+        # Itinerary mapping (using path numbers from CSV)
+        # Note: path=0 means Not Itinerary-Specific (B, O, C, T, Practicas)
+        #       path=1: Ing. Comp.
+        #       path=2: Ing. Soft.
+        #       path=3: Comp.
+        #       path=4: Sist. Info.
+        #       path=5: Tec. Info.
+        #       path=X_Y: Belongs to multiple
+
+        # Get completed subjects codes (used multiple times)
+        passed_or_transferred_codes <- subject_positions %>%
+          filter(subject_mark %in% c(translate(language, "Pass"), translate(language, "Transfer"))) %>%
+          pull(subject_code) %>%
+          unique()
+
+        # Define subjects data once
+        all_subjects_data <- degree_data$subjects_data
+
+        # --- Itinerary Filtering Logic ---
+        selected_itinerary_path <- input$itinerary # Value is "1", "2", "3", "4", "5", or "0" (Not Sure)
+        final_enrollable_pool <- enrollable # Start with the initial list
+
+        if (selected_itinerary_path == "0") { # "Not Sure" selected
+          # Target: B, O, C and Practicas (05.615)
+          target_codes <- all_subjects_data %>%
+            filter(type %in% c("B", "O", "C") | subject_code == "05.615") %>%
+            pull(subject_code) %>%
+            unique()
+
+          available_uncompleted_target_subjects <- intersect(
+            setdiff(target_codes, passed_or_transferred_codes),
+            enrollable$subject_code # Must be available in current semester/status
+          )
+
+          if (length(available_uncompleted_target_subjects) > 0) {
+            # If B/O/Practicas are available, recommend ONLY from them
+            final_enrollable_pool <- enrollable %>% filter(subject_code %in% available_uncompleted_target_subjects)
+          } else {
+            # If all B/O/Practicas done, recommend from anything available in enrollable (P, T included)
+            final_enrollable_pool <- enrollable
+          }
+
+        } else { # Specific Itinerary selected
+          # Target: B, O, C, and P matching the itinerary path
+          target_codes_for_itinerary <- all_subjects_data %>%
+            filter(type %in% c("B", "O", "C") | (type == "P" & str_detect(path, selected_itinerary_path))) %>%
+            pull(subject_code) %>%
+            unique()
+
+          # Add Practicas (05.615) if it's enrollable and not already included (it's P/path 0)
+          practicas_code <- "05.615"
+          if (!(practicas_code %in% target_codes_for_itinerary) && (practicas_code %in% enrollable$subject_code)) {
+              target_codes_for_itinerary <- c(target_codes_for_itinerary, practicas_code)
+          }
+
+          available_uncompleted_target_subjects_for_itinerary <- intersect(
+             setdiff(target_codes_for_itinerary, passed_or_transferred_codes),
+             enrollable$subject_code # Must be available in current semester/status
+          )
+
+          if (length(available_uncompleted_target_subjects_for_itinerary) > 0) {
+            # If relevant B/O/P are available, recommend ONLY from them
+            final_enrollable_pool <- enrollable %>% filter(subject_code %in% available_uncompleted_target_subjects_for_itinerary)
+          } else {
+            # If all relevant B/O/P done, recommend from anything available in enrollable
+            final_enrollable_pool <- enrollable
+          }
+        }
+        # --- End Itinerary Filtering Logic ---
+
+        # Check if the final pool is empty after filtering
+        if (nrow(final_enrollable_pool) == 0) {
+            # Use shiny::showNotification for user feedback
+            showNotification(
+               translate(language, "No subjects available for recommendation based on your current status and itinerary selection."),
+               type = "warning",
+               duration = 5 # Show for 5 seconds
+            )
+            recommended_list$subject_code <- character() # Clear recommendations
+            # Keep user in Step 1 (preferences) if no recommendations found
+            enrollment_step$current_step <- 1
+            session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
+            session$sendCustomMessage(type = "show",  message = ".step-sliders") # Ensure sliders are visible
+            session$sendCustomMessage(type = "show",  message = ".step-recommend") # Ensure recommend button area is visible
+            session$sendCustomMessage(type = "hide",  message = ".selecciona_asignatures") # Hide selection area
+            return() # Stop further processing
+        }
+        
         # recomendador basado en distancias
         if (input$recommender==translate(language,"Distance")) {
-          failed <- enrollable  %>% filter(subject_mark %in% c("SU","NP", translate(language, "Fail")))
+          failed <- final_enrollable_pool  %>% filter(subject_mark %in% c("SU","NP", translate(language, "Fail"))) # Use filtered pool
           # JULIA: 03/10/2023
           #passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M"))
           passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M", translate(language, "Pass")))	  
           transferred <- as_tibble(subject_positions) %>% filter(subject_mark %in% c(translate(language, "Transfer")))
-          final_project_data <- as_tibble(subject_positions) %>% filter(subject_code %in% c(final_project_code))
-          # JULIA 27/01/2023 corregir las asignaturas usadas para calcular distancias 
-          #b_set <- case_when(
-          #  length(passed$ass)>0 ~ list(passed),
-          #  length(transferred$ass)>0 ~ list(transferred),
-          #  TRUE ~ list(tfm_df)
-          #)
-          #b_set <- b_set[[1]]
           completed_subjects <- rbind(passed, transferred)
           completed_subjects_n <- length(completed_subjects$subject_code)
-          subject_distances = tibble(subject_code = enrollable$subject_code, d = 0)
+          subject_distances = tibble(subject_code = final_enrollable_pool$subject_code, d = 0)
 
-          # para cada asignatura matriculable
-          for(current_subject in enrollable$subject_code){
+          # para cada asignatura matriculable (in the filtered pool)
+          for(current_subject in final_enrollable_pool$subject_code){
             total_distance = 0
             # acumular la distancia a todas las asignaturas ya superadas o convalidadas
-            current_x <- enrollable[enrollable$subject_code==current_subject,'x']
-            current_y <- enrollable[enrollable$subject_code==current_subject,'y']
+            current_x <- final_enrollable_pool[final_enrollable_pool$subject_code==current_subject,'x'] # Use filtered pool
+            current_y <- final_enrollable_pool[final_enrollable_pool$subject_code==current_subject,'y'] # Use filtered pool
+            if (nrow(completed_subjects) > 0) { # Avoid loop if no completed subjects
             for(completed_subject in completed_subjects$subject_code){
-              #              current_x <- matriculables %>% filter(ass == current_subject) %>% pull(V1)
-              #              current_y <- matriculables %>% filter(ass == current_subject) %>% pull(V2)
-              #              completed_x <- completed_subjects %>% filter(ass == completed_subject) %>% pull(V1)
-              #              completed_y <- completed_subjects %>% filter(ass == completed_subject) %>% pull(V2)
               completed_x <- completed_subjects[completed_subjects$subject_code==completed_subject,'x']
               completed_y <- completed_subjects[completed_subjects$subject_code==completed_subject,'y']
               
@@ -1166,15 +1363,16 @@ subjectEnrollmentServer <- function(id, language) {
               
               # si se trata de una asignatura suspendida, "forzar" que sea
               # más probable recomendarla reduciendo la distancia
-              if(current_subject %in% failed){
+                if(current_subject %in% failed$subject_code){ # Check against codes in failed df
                 subject_distance=subject_distance/input$failed_subjects_distance_adjustment
               }
               total_distance <- total_distance + subject_distance
             }
-            # guardar la distancia promedio calculada
-            subject_distances[subject_distances$subject_code==current_subject,'d']=total_distance/completed_subjects_n
-            #            subject_distances <- subject_distances %>% 
-            #              mutate(d = if_else(ass == current_subject, total_distance/completed_subjects_n, d))
+              # guardar la distancia promedio calculada (only if completed_subjects_n > 0)
+              if (completed_subjects_n > 0) {
+                 subject_distances[subject_distances$subject_code==current_subject,'d'] = total_distance / completed_subjects_n
+              } # If no completed subjects, distance remains 0
+            }
           }
           
           if(length(passed$subject_code)>0 | length(transferred$subject_code)>0){
@@ -1185,14 +1383,13 @@ subjectEnrollmentServer <- function(id, language) {
           
           # PREREQUISITE CHECK
           if (input$recommender==translate(language,"Distance")) {
-            # Get passed and transferred subject codes
-            passed_or_transferred <- subject_positions %>% 
-              filter(subject_mark %in% c(translate(language, "Pass"), translate(language, "Transfer"))) %>% 
-              pull(subject_code) %>% 
-              unique()
-
             # Get prerequisite data
             prerequisites <- degree_data$prerequisites_data
+
+            # Add subject type/path info needed for prioritization later
+            subject_details_for_merge <- degree_data$subjects_data %>%
+              dplyr::select(subject_code, type, path)
+            arranged_distances <- left_join(arranged_distances, subject_details_for_merge, by = "subject_code")
 
             # --- Calculate Earned ECTS for recommendation check ---
             earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Pass"), translate(language, "Transfer"))
@@ -1214,61 +1411,128 @@ subjectEnrollmentServer <- function(id, language) {
             }
             # --- End ECTS Calculation ---
 
-            # Filter the arranged distances based on prerequisites
-            filtered_recommendations <- character()
-            num_recommendations_needed <- 6 # Max subjects to recommend
-            cumulative_ects <- 0
-            desired_ects <- input$desired_ects # Get value from the new slider
-            idx <- 1
+            # --- Check Prerequisites for ALL potential recommendations --- 
+            # Add columns to arranged_distances to store check results
+            arranged_distances <- arranged_distances %>%
+              mutate(meets_std_prereqs = NA, meets_ects_prereq = NA, credits = NA)
 
-            # Loop until we hit the subject limit, run out of subjects, or (approximately) hit the ECTS limit
-            while(length(filtered_recommendations) < num_recommendations_needed && idx <= nrow(arranged_distances) && cumulative_ects < desired_ects) {
-              potential_subject <- arranged_distances$subject_code[idx]
-              
-              # Find standard prerequisites for this subject
+            for(idx in 1:nrow(arranged_distances)) {
+              potential_subject_code <- arranged_distances$subject_code[idx]
+
+              # Check standard prerequisites
               subject_prereqs <- prerequisites %>% 
-                filter(subject_code == potential_subject) %>% 
+                filter(subject_code == potential_subject_code) %>% 
                 pull(prerequisite_code)
-
-              # Check if all standard prerequisites are met
               all_standard_prereqs_met <- TRUE
               if (length(subject_prereqs) > 0) {
-                all_standard_prereqs_met <- all(subject_prereqs %in% passed_or_transferred)
+                all_standard_prereqs_met <- all(subject_prereqs %in% passed_or_transferred_codes)
               }
-              
-              # Check special ECTS prerequisites (if applicable)
-              meets_ects_prereq <- TRUE # Assume true unless proven otherwise
-              if (potential_subject == "05.615" && earned_ects_for_rec < 120) {
-                meets_ects_prereq <- FALSE
-              } else if (potential_subject == "05.616" && earned_ects_for_rec < 180) {
-                meets_ects_prereq <- FALSE
-              }
+              arranged_distances$meets_std_prereqs[idx] <- all_standard_prereqs_met
 
-              # If ALL prerequisites are met, check if it fits the ECTS budget
-              if (all_standard_prereqs_met && meets_ects_prereq) {
-                # Get ECTS for the potential subject
-                subject_ects <- degree_data$subjects_data %>%
-                  filter(subject_code == potential_subject) %>%
+              # Check special ECTS prerequisites
+              meets_ects_req <- TRUE # Assume true unless proven otherwise
+              required_ects <- NA
+              if (potential_subject_code == "05.615") required_ects <- 120
+              else if (potential_subject_code == "05.616") required_ects <- 180 # TFG check
+
+              if (!is.na(required_ects) && earned_ects_for_rec < required_ects) {
+                meets_ects_req <- FALSE
+              }
+              arranged_distances$meets_ects_prereq[idx] <- meets_ects_req
+
+              # Store credits for budget check later
+              subject_credits_val <- degree_data$subjects_data %>%
+                 filter(subject_code == potential_subject_code) %>%
                   pull(credits)
-                
-                # Check if ECTS is valid and if adding it fits the budget (or if it's the first recommendation)
-                if (!is.na(subject_ects) && length(subject_ects) > 0 && is.numeric(subject_ects[1])) {
-                  if (cumulative_ects + subject_ects[1] <= desired_ects || length(filtered_recommendations) == 0) {
-                    filtered_recommendations <- c(filtered_recommendations, potential_subject)
-                    cumulative_ects <- cumulative_ects + subject_ects[1]
-                  } # else: Subject is valid but too large for the remaining budget, skip it.
-                }
-              } # else: Prerequisites not met, skip it.
-              
-              idx <- idx + 1 # Move to the next potential subject
+              arranged_distances$credits[idx] <- ifelse(length(subject_credits_val) > 0 && is.numeric(subject_credits_val[1]), subject_credits_val[1], NA)
             }
-            
+
+            # Filter down to valid candidates based on prereqs
+            valid_candidates <- arranged_distances %>%
+                filter(meets_std_prereqs == TRUE & meets_ects_prereq == TRUE & !is.na(credits))
+ 
+            # --- Build Final Recommendation List with Simplified Prioritization ---
+            filtered_recommendations <- character() # Initialize empty list
+            num_recommendations_needed <- 6      # Max subjects
+            cumulative_ects <- 0                  # Track ECTS
+            desired_ects <- input$desired_ects    # Target ECTS
+            selected_itinerary_path <- input$itinerary # User selection
+
+            # Identify failed subjects from student data if available
+            failed_subject_codes <- character()
+            if (!is.null(degree_data$student_data)) {
+              fail_marks_check <- c("SU", "NP", translate(language, "Fail"))
+              failed_subject_codes <- degree_data$student_data %>%
+                filter(subject_mark %in% fail_marks_check) %>%
+                pull(subject_code) %>%
+                unique()
+            }
+ 
+            add_subject_to_recommendation <- function(code, ects) {
+               # Helper to add subject and update state if budget/limit allows
+               # Returns TRUE if added, FALSE otherwise
+               if (length(filtered_recommendations) < num_recommendations_needed &&
+                   (cumulative_ects + ects <= desired_ects || length(filtered_recommendations) == 0)) # Allow first even if slightly over
+               {
+                 filtered_recommendations <<- c(filtered_recommendations, code)
+                 cumulative_ects <<- cumulative_ects + ects
+                 return(TRUE)
+               } else {
+                 return(FALSE)
+               }
+            }
+
+            # --- Prioritization Passes --- 
+
+            # Pass 1: Prioritize Failed Subjects (that are valid candidates)
+            if (length(failed_subject_codes) > 0) {
+               for (i in 1:nrow(valid_candidates)) {
+                  candidate_code <- valid_candidates$subject_code[i]
+                  candidate_ects <- valid_candidates$credits[i]
+                  if (candidate_code %in% failed_subject_codes) {
+                     added <- add_subject_to_recommendation(candidate_code, candidate_ects)
+                  }
+                  if (length(filtered_recommendations) >= num_recommendations_needed) break
+               }
+            }
+
+            # Pass 2: Prioritize Matching Itinerary Electives (if itinerary selected)
+            if (selected_itinerary_path != "0" && length(filtered_recommendations) < num_recommendations_needed) {
+                for (i in 1:nrow(valid_candidates)) {
+                   candidate_code <- valid_candidates$subject_code[i]
+                   candidate_type <- valid_candidates$type[i]
+                   candidate_path <- as.character(valid_candidates$path[i]) # Ensure character
+                   candidate_ects <- valid_candidates$credits[i]
+                   is_matching_elective <- (candidate_type == "P" && str_detect(candidate_path, selected_itinerary_path))
+
+                   if (is_matching_elective && !(candidate_code %in% filtered_recommendations)) {
+                      added <- add_subject_to_recommendation(candidate_code, candidate_ects)
+                   }
+                   if (length(filtered_recommendations) >= num_recommendations_needed) break
+                }
+            }
+
+            # Pass 3: Add Remaining Valid Subjects (fills for "Not Sure" or remaining slots)
+            if (length(filtered_recommendations) < num_recommendations_needed) {
+               for (i in 1:nrow(valid_candidates)) {
+                   candidate_code <- valid_candidates$subject_code[i]
+                   candidate_ects <- valid_candidates$credits[i]
+                   if (!(candidate_code %in% filtered_recommendations)) {
+                      added <- add_subject_to_recommendation(candidate_code, candidate_ects)
+                   }
+                   if (length(filtered_recommendations) >= num_recommendations_needed) break
+                }
+            }
+
+            # --- End Recommendation Building ---
+
+            # Assign the final list
             recommended_list$subject_code <- filtered_recommendations
           } else {
             # Original random recommender logic (unchanged)
             recommended_list$subject_code <-
-                enrollable %>%
-                sample_n(6) %>%
+                final_enrollable_pool %>% # Use filtered pool for random sampling too
+                sample_n(min(6, nrow(final_enrollable_pool))) %>% # Sample max 6 or fewer if pool is smaller
                 pull(subject_code)
           }
         }
@@ -1278,6 +1542,7 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
+        session$sendCustomMessage(type = "show",  message = ".selecciona_asignatures") # Ensure selection step UI is visible
       })
       
       # Events: Previous, next, search, etc -----------------------------------------------------------------
@@ -1340,6 +1605,7 @@ subjectEnrollmentServer <- function(id, language) {
         updateSliderInput(session, "overlap", value = 1)
         updateSliderInput(session, "workload", value = 1) # Reset workload slider
         updateSliderInput(session, "desired_ects", value = 30) # Reset ECTS slider
+        updateSelectInput(session, "itinerary", selected = "0") # Reset Itinerary dropdown
         
         # Reset UI elements to initial state (Step 0)
         session$sendCustomMessage(type = "steps",  message = paste0("step", enrollment_step$current_step))

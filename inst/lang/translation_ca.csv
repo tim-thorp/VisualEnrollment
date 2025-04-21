@@ -103,3 +103,18 @@ Type:,"Tipus:"
 Have completed at least,"Haver superat com a mínim"
 Desired ECTS for Enrollment:,"ECTS desitjats per a la matrícula:"
 "Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.","Selecciona els ECTS a matricular. Normalment 1 assignatura = 6 ECTS, excepte pràctiques o TFG."
+Choose Itinerary:,Escull Itinerari:
+Computer Engineering,Enginyeria de computadors
+Software Engineering,Enginyeria del programari
+Computing,Computació
+Information Systems,Sistemes d'informació
+Information Technology,Tecnologies de la informació
+Not Sure,No estic segur
+Itinerary:,Itinerari:
+Elective,Optativa
+"Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet.","Seleccionar un itinerari prioritzarà la recomanació d'assignatures d'aquella branca. Tria 'No estic segur' si encara no t'has decidit."
+Main Settings,Configuració Principal
+Advanced Settings,Configuració Avançada
+"Not available (You have already passed Algebra, Mathemetical Analysis, or Statistics)","No disponible (Ja has superat Àlgebra, Anàlisi Matemàtica o Estadística)"
+"Not available (You have already passed Fund./Prac. Prog. or OOP)","No disponible (Ja has superat Fonaments/Pràctiques de Prog. o POO)"
+"Not available (Not offered this semester)","No disponible (No ofertada aquest semestre)"

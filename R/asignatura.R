@@ -30,6 +30,11 @@ find_closest_subject <- function(click_position){
 get_subject_type <- function(language, degree_data, subject_data) {
   tryCatch(
     expr = {
+      # Check if the subject is elective (Type P)
+      if (subject_data$type == "P") {
+        return(translate(language, "Elective")) # Return generic Elective label
+      }
+      # Otherwise, get the specific type from the typology data
       subject_type_df <- degree_data$subject_type
       join <- subject_data %>% left_join(subject_type_df, by = c("type", "path"))
       if(nrow(join)!=1) return("")
