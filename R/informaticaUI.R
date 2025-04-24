@@ -314,7 +314,7 @@ subjectEnrollmentUI <- function(id, language) {
                 translate(language, "You can specify the number of days you think you are going to dedicate to each activity:"),
                 min = 1,
                 max = 28,
-                value = 1
+                value = 15
               )
             )
           ),

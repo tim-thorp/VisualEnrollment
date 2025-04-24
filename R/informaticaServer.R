@@ -1558,7 +1558,7 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
-        updateSliderInput(session, "workload", value = 1) # Reset workload slider
+        updateSliderInput(session, "workload", value = 15) # Reset workload slider
       })
       
       observeEvent(input$previous2, {
@@ -1573,7 +1573,7 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
-        updateSliderInput(session, "workload", value = 1) # Reset workload slider
+        updateSliderInput(session, "workload", value = 15) # Reset workload slider
       })
       
       observeEvent(input$next_button, {
@@ -1603,7 +1603,7 @@ subjectEnrollmentServer <- function(id, language) {
         updateSliderInput(session, "difficulty", value = 1)
         updateSliderInput(session, "popularity", value = 1)
         updateSliderInput(session, "overlap", value = 1)
-        updateSliderInput(session, "workload", value = 1) # Reset workload slider
+        updateSliderInput(session, "workload", value = 15) # Reset workload slider
         updateSliderInput(session, "desired_ects", value = 30) # Reset ECTS slider
         updateSelectInput(session, "itinerary", selected = "0") # Reset Itinerary dropdown
         
