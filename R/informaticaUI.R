@@ -46,7 +46,7 @@ subjectEnrollmentUI <- function(id, language) {
               style="height: 72px; margin-bottom: 40px;",
               sliderInput(
                 namespace("desired_ects"),
-                h4(translate(language, "Desired ECTS for Enrollment:"), icon("info")),
+                h4(translate(language, "Desired ECTS for Enrollment:"), icon("info-circle")),
                 min = 6,
                 max = 36,
                 value = 30,
@@ -60,7 +60,7 @@ subjectEnrollmentUI <- function(id, language) {
               style="height: 72px; margin-bottom: 40px;",
               selectInput(
                 namespace("itinerary"),
-                h4(translate(language, "Choose Itinerary:"), icon("info")),
+                h4(translate(language, "Choose Itinerary:"), icon("info-circle")),
                 choices = setNames(
                   c("1", "2", "3", "4", "5", "0"), # Using path numbers as values, 0 for "Not Sure"
                   c(
@@ -84,7 +84,7 @@ subjectEnrollmentUI <- function(id, language) {
               title=translate(language,"Separate the most difficult subjects"),
               sliderInput(
                 namespace("difficulty"),
-                tags$label(tags$strong(translate(language,"Difficulty:")), icon("info")),
+                tags$label(tags$strong(translate(language,"Difficulty:")), icon("info-circle")),
                 min = 1, 
                 max = 5, 
                 value = 1,
@@ -98,7 +98,7 @@ subjectEnrollmentUI <- function(id, language) {
               ),
               sliderInput(
                 namespace("popularity"),
-                tags$label(tags$strong(translate(language, "Popularity:")), icon("info")),
+                tags$label(tags$strong(translate(language, "Popularity:")), icon("info-circle")),
                 min = 1,
                 max = 5,
                 value = 1,
@@ -112,7 +112,7 @@ subjectEnrollmentUI <- function(id, language) {
               ),
               sliderInput(
                 namespace("overlap"),
-                tags$label(tags$strong(translate(language, "Overlaps between deadlines:")), icon("info")),
+                tags$label(tags$strong(translate(language, "Overlaps between deadlines:")), icon("info-circle")),
                 min = 1,
                 max = 5,
                 value = 1,
