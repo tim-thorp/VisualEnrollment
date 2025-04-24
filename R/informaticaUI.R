@@ -328,7 +328,7 @@ subjectEnrollmentUI <- function(id, language) {
           div(
             class = "cal_asignatures ms-Grid-col ms-sm12 cal",
             tagList(
-              h2(translate(language, "Activity calendar")),
+              h2(translate(language, "Graded Activity Calendar")),
               plotOutput(namespace("cal"))
             )
           ),
