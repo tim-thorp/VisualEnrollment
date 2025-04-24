@@ -311,7 +311,15 @@ subjectEnrollmentUI <- function(id, language) {
               )),
               sliderInput(
                 namespace("workload"),
-                translate(language, "You can specify the number of days you think you are going to dedicate to each activity:"),
+                # Combine label text and tooltip icon
+                label = tagList(
+                  translate(language, "You can specify the number of days you think you are going to dedicate to each activity:"),
+                  # Add icon with translated tooltip text
+                  icon("info-circle", 
+                       title = translate(language, "We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning."),
+                       style = "margin-left: 5px;" # Adds space between text and icon
+                  )
+                ),
                 min = 1,
                 max = 28,
                 value = 15
