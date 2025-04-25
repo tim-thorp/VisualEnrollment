@@ -840,8 +840,30 @@ subjectEnrollmentServer <- function(id, language) {
         })
         
         # --- Generate items for the third legend (Selection ONLY) ---
-        selected_label <- translate(language, "Selected")
         selected_color <- colors2[7] # The last color is for Selected
+        
+        # Calculate dynamic label based on selected subjects
+        selected_codes <- na.omit(selected_list$subject_code)
+        num_selected <- length(selected_codes)
+        total_ects <- 0
+        if (num_selected > 0 && !is.null(degree_data$subjects_data)) {
+          selected_subjects_data <- degree_data$subjects_data %>%
+            filter(subject_code %in% selected_codes)
+          # Ensure credits are numeric and handle potential NAs
+          credits_numeric <- as.numeric(selected_subjects_data$credits)
+          total_ects <- sum(credits_numeric, na.rm = TRUE) 
+        }
+        
+        # Determine singular or plural subject word
+        subject_word_key_en <- ifelse(num_selected == 1, "Subject", "Subjects")
+        subject_word_translated <- translate(language, subject_word_key_en)
+        
+        dynamic_selected_label <- sprintf(
+          "%d %s (%d ECTS)", 
+          num_selected, 
+          subject_word_translated,
+          total_ects
+        )
 
         legend_item_selected <- tags$li(
           style = "display: flex; align-items: baseline; margin-bottom: 5px;",
@@ -855,7 +877,7 @@ subjectEnrollmentServer <- function(id, language) {
               "position: relative; top: 3px;"
             )
           ),
-          tags$span(selected_label)
+          tags$span(dynamic_selected_label)
         )
 
         # --- Return the legends based on the current step ---
