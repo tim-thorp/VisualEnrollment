@@ -118,8 +118,6 @@ VisualEnrollment/
 │   │   ├── solap2_INFORMATICA.csv   # Semester 2 schedule overlap data  
 │   │   └── tipologia_INFORMATICA.csv  # Subject typology information  
 │   │  
-│   ├── golem-config.yml             # Golem package configuration  
-│   │  
 │   ├── lang/                        # Language files directory  
 │   │   ├── translation_ca.csv       # Catalan translations  
 │   │   └── translation_es.csv       # Spanish translations  

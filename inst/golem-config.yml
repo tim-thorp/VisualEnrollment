@@ -1,8 +1,0 @@
-default:
-  golem_name: visualenrollment
-  golem_version: 0.0.4.9009
-  app_prod: no
-production:
-  app_prod: yes
-dev:
-  golem_wd: !expr here::here()
