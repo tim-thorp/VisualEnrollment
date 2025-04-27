@@ -48,6 +48,27 @@ subjectEnrollmentServer <- function(id, language) {
       #  }
       #  return(get_query_param()$tutor)
       #})
+      # --- Helper Function ---
+      format_subject_list <- function(subject_names, language) {
+        n <- length(subject_names)
+        if (n == 0) {
+          return("")
+        } else if (n == 1) {
+          return(subject_names[1])
+        } else if (n == 2) {
+          # Use translation key for "and"
+          and_conjunction <- translate(language, "and")
+          return(paste(subject_names[1], and_conjunction, subject_names[2]))
+        } else {
+          # Format list like "A, B, C and D"
+          and_conjunction <- translate(language, "and")
+          # Join all but the last two with commas
+          first_part <- paste(subject_names[1:(n-2)], collapse=", ")
+          # Combine the parts: "A, B, C and D"
+          return(paste0(first_part, ", ", subject_names[n-1], " ", and_conjunction, " ", subject_names[n]))
+        }
+      } 
+      # --- End Helper Function ---
       
       degree_data <- reactive({
         if (is.null(input$degree)) {
@@ -65,7 +86,8 @@ subjectEnrollmentServer <- function(id, language) {
             popularity_distance_matrix = NULL, 
             overlap_distance_matrix = NULL, 
             semester_distance_matrix = NULL,
-            prerequisites_data = NULL
+            prerequisites_data = NULL,
+            restrictions_data = NULL
           ))
         }
         
@@ -132,6 +154,9 @@ subjectEnrollmentServer <- function(id, language) {
         # Load prerequisites data for the new system
         prerequisites_data <- data_files[[paste0("prerequisites_", selected_degree)]]
         
+        # Load restrictions data
+        restrictions_data <- data_files[[paste0("restrictions_", selected_degree)]]
+        
         # dadesEST
         student_data = NULL
         transferred_credits = NULL
@@ -180,7 +205,8 @@ subjectEnrollmentServer <- function(id, language) {
           popularity_distance_matrix = popularity_distance_matrix, 
           overlap_distance_matrix = overlap_distance_matrix, 
           semester_distance_matrix = semester_distance_matrix,
-          prerequisites_data = prerequisites_data
+          prerequisites_data = prerequisites_data,
+          restrictions_data = restrictions_data
         ))
       })  
       
@@ -249,23 +275,75 @@ subjectEnrollmentServer <- function(id, language) {
         # --- Add explanation if status is "Not available" ---
         status_text_final <- status_text # Default to the base status
         if (display_mark == translate(language, "Not available")) {
-             reason_code <- subject_positions %>%
-                 filter(subject_code == hovered_code) %>%
-                 pull(unavailability_reason)
+             # Get the specific row for the hovered subject from subject_positions
+             hovered_pos_info <- subject_positions %>% 
+                 filter(subject_code == hovered_code) %>% 
+                 slice(1) # Ensure we only get one row
+            
+             # Check if the row and necessary columns exist before proceeding
+             if (nrow(hovered_pos_info) > 0 && 
+                 "unavailability_reason" %in% names(hovered_pos_info)) { 
+                 
+                 reason_code <- hovered_pos_info$unavailability_reason
+                 # Details column might not exist if reason is SEMESTER_FAILED
+                 reason_details <- if ("unavailability_details" %in% names(hovered_pos_info)) { 
+                                      hovered_pos_info$unavailability_details 
+                                   } else { 
+                                      NA 
+                                   }
              
-             # Ensure reason_code is not NA and has length > 0
-             if (!is.na(reason_code) && length(reason_code) > 0 && nchar(reason_code[1]) > 0) {
-                  reason_english_key <- switch(reason_code[1],
-                     "impi_rule" = "Not available (You have already passed Algebra, Mathemetical Analysis, or Statistics)",
-                     "pcap_rule" = "Not available (You have already passed Fund./Prac. Prog. or OOP)",
-                     "semester_rule" = "Not available (Not offered this semester)",
-                     NA # Default if code doesn't match
-                  )
- 
-                  if(!is.na(reason_english_key)) {
-                      status_text_final <- translate(language, reason_english_key)
-                   }
-              }
+                 # Ensure reason_code is valid
+                 if (!is.na(reason_code) && nchar(reason_code) > 0) {
+                    # Generate message based on the reason code
+                    if (reason_code == "MIN_ECTS_FAILED") {
+                        # Need to check details is not NA before using sprintf
+                        if (!is.na(reason_details)) {
+                            status_text_final <- sprintf(
+                                translate(language, "Not available (Minimum %s ECTS required)"), 
+                                reason_details
+                            )
+                        } else {
+                           status_text_final <- translate(language, "Not available (Minimum ECTS required)") # Fallback
+                        }
+                    } else if (reason_code == "ANTIREQUISITE_FAILED") {
+                       # Need to check details is not NA before processing
+                       if (!is.na(reason_details)) {
+                            blocking_codes <- unlist(str_split(reason_details, ";"))
+                            blocking_codes <- blocking_codes[blocking_codes != ""]
+                            
+                            if (length(blocking_codes) > 0 && !is.null(degree_data$subject_names)){
+                                # Look up names for the blocking codes
+                                name_col <- paste0("name_", language)
+                                blocking_names <- degree_data$subject_names %>% 
+                                    filter(subject_code %in% blocking_codes) %>% 
+                                    pull(!!sym(name_col))
+                                
+                                # Format names nicely (e.g., A, B and C)
+                                formatted_names <- format_subject_list(blocking_names, language)
+                                
+                                status_text_final <- sprintf(
+                                    translate(language, "Not available (You have already passed %s)"),
+                                    formatted_names
+                                )
+                            } else {
+                                # Fallback if names can't be found
+                                status_text_final <- translate(language, "Not available")
+                            }
+                       } else {
+                           # Fallback if details missing
+                           status_text_final <- translate(language, "Not available")
+                       } 
+                    } else if (reason_code == "SEMESTER_FAILED") {
+                        status_text_final <- translate(language, "Not available (Not offered this semester)")
+                    } else {
+                        # Fallback for unknown reason codes
+                        status_text_final <- translate(language, "Not available")
+                    }
+                 }
+             } else {
+                 # Fallback if hovered_pos_info is missing or lacks the reason column
+                 status_text_final <- translate(language, "Not available")
+             }
           }
         # --- End "Not available" explanation ---
 
@@ -326,24 +404,6 @@ subjectEnrollmentServer <- function(id, language) {
           })
         }
 
-        # --- Handle Special ECTS Prerequisites (if applicable) ---
-        required_ects <- NA
-        ects_prereq_text <- ""
-        if (hovered_code == "05.615") { # Prácticas en Empresa
-          required_ects <- 120
-          ects_prereq_text <- paste(translate(language, "Have completed at least"), required_ects, "ECTS")
-        } else if (hovered_code == "05.616") { # Trabajo Final de Grado
-          required_ects <- 180
-          ects_prereq_text <- paste(translate(language, "Have completed at least"), required_ects, "ECTS")
-        }
-
-        if (!is.na(required_ects)) {
-          ects_fulfilled <- earned_ects >= required_ects
-          emoji <- ifelse(ects_fulfilled, "✅", "❌")
-          # Create the ECTS prerequisite item and add it to the list
-          ects_prereq_item <- tagList(paste(emoji, ects_prereq_text), tags$br())
-          prereq_display_items[[length(prereq_display_items) + 1]] <- ects_prereq_item
-        }
 
         # --- Convert list of items to displayable elements ---
         prereq_display_elements <- NULL
@@ -572,96 +632,167 @@ subjectEnrollmentServer <- function(id, language) {
             }
             
             # Initialize unavailability_reason column using mutate right after data setup
-            subject_coordinates <- subject_coordinates %>% mutate(unavailability_reason = NA_character_)
-            
-            # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
-            # ordenado
-            subject_coordinates$full_name=degree_data$subject_names[[paste0("name_",language)]]
-            subject_coordinates$full_name=paste0(subject_coordinates$full_name," (",subject_coordinates$subject_abbreviation,")")
-            
-            # JULIA 30/12/2022 quitar left_join, aprovechando que todo está
-            # --- Apply specific rule for IMpI (05.614) ---
-            if (!is.null(input$idp) && input$idp != "---") {
-                 math_prereq_codes <- c("05.557", "05.558", "05.568")
-                 # Define FINAL passed/transfer marks (raw codes) - needed for rule overrides
-                 final_passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda")
-                 passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Pass"), translate(language, "Transfer"))
- 
-                 passed_math_subjects <- student_data %>%
-                     filter(subject_code %in% math_prereq_codes & subject_mark %in% passed_transfer_marks) %>%
-                     nrow()
- 
-                 if (passed_math_subjects > 0) {
-                      subject_coordinates <- subject_coordinates %>%
-                          mutate(
-                              unavailability_reason = ifelse(subject_code == "05.614" & !(subject_mark %in% final_passed_transfer_marks), "impi_rule", unavailability_reason),
-                              subject_mark = ifelse(subject_code == "05.614" & !(subject_mark %in% final_passed_transfer_marks), translate(language, "Not available"), subject_mark)
-                          )
-                 }
-             }
-             # --- End IMpI rule ---
-            
-            # --- Apply specific rule for PCAP (22.400) ---
-            if (!is.null(input$idp) && input$idp != "---") {
-                prog_prereq_codes <- c("05.554", "05.555", "05.564")
-                # passed_transfer_marks is already defined above for IMpI
+            subject_coordinates <- subject_coordinates %>%
+             mutate(
+                 unavailability_reason = NA_character_,
+                 unavailability_details = NA_character_ # Add details column
+             )
 
-                passed_prog_subjects <- student_data %>%
-                    filter(subject_code %in% prog_prereq_codes & subject_mark %in% passed_transfer_marks) %>%
-                    nrow()
+            # Define FINAL passed/transfer marks (raw codes) - needed for rule overrides
+            final_passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda")
+            passed_transfer_marks <- c(final_passed_transfer_marks, translate(language, "Pass"), translate(language, "Transfer"))
 
-                if (passed_prog_subjects > 0) {
-                    subject_coordinates <- subject_coordinates %>%
-                        mutate(
-                            unavailability_reason = ifelse(subject_code == "22.400" & !(subject_mark %in% final_passed_transfer_marks), "pcap_rule", unavailability_reason),
-                            subject_mark = ifelse(subject_code == "22.400" & !(subject_mark %in% final_passed_transfer_marks), translate(language, "Not available"), subject_mark)
-                        )
+            # --- Apply Restrictions from CSV --- 
+            if (!is.null(input$idp) && input$idp != "---" && !is.null(degree_data$restrictions_data)) {
+              restrictions <- degree_data$restrictions_data
+              student_subjects <- degree_data$student_data # Already has passed/transferred
+
+              # Calculate earned ECTS once if needed
+              earned_ects <- 0
+              min_ects_rules_exist <- any(!is.na(restrictions$min_ects))
+              if (min_ects_rules_exist) {
+                  # (Earned ECTS calculation logic as before)
+                  passed_or_transferred_codes_for_ects <- student_subjects %>%
+                    filter(subject_mark %in% passed_transfer_marks) %>%
+                    pull(subject_code) %>%
+                    unique()
+                  if (length(passed_or_transferred_codes_for_ects) > 0) {
+                    earned_ects <- degree_data$subjects_data %>%
+                      filter(subject_code %in% passed_or_transferred_codes_for_ects) %>%
+                      summarise(total_ects = sum(credits, na.rm = TRUE)) %>%
+                      pull(total_ects)
+                  }
+                  if (!is.numeric(earned_ects) || is.na(earned_ects)) { earned_ects <- 0 }
+              }
+
+              # Get codes of passed/transferred subjects once if needed
+              passed_or_transferred_codes <- character(0)
+              antireq_rules_exist <- any(!is.na(restrictions$antirequisites))
+              if (antireq_rules_exist) {
+                  passed_or_transferred_codes <- student_subjects %>%
+                      filter(subject_mark %in% passed_transfer_marks) %>%
+                      pull(subject_code) %>%
+                      unique()
+              }
+
+              # Apply each restriction rule from the CSV
+              for(i in 1:nrow(restrictions)) {
+                rule <- restrictions[i, ]
+                restricted_code <- rule$restricted_subject_code
+
+                # Find index of target subject in coordinates dataframe
+                target_idx <- which(subject_coordinates$subject_code == restricted_code)
+
+                # Proceed only if the target subject exists and is not already passed/transferred
+                if (length(target_idx) > 0 && !(subject_coordinates$subject_mark[target_idx] %in% passed_transfer_marks)) {
+                  apply_restriction <- FALSE
+                  reason_code <- NA_character_
+                  details <- NA_character_
+
+                  # Check MIN_ECTS rule
+                  if (!is.na(rule$min_ects)) {
+                    if (earned_ects < rule$min_ects) {
+                      apply_restriction <- TRUE
+                      reason_code <- "MIN_ECTS_FAILED"
+                      details <- as.character(rule$min_ects)
+                    }
+                  }
+                  
+                  # Check ANTIREQUISITE rule (only if MIN_ECTS didn't already fail)
+                  if (!apply_restriction && !is.na(rule$antirequisites)) { # Use !apply_restriction
+                    blocking_codes_rule <- unlist(str_split(rule$antirequisites, ";"))
+                    # Filter out empty strings that might result from splitting
+                    blocking_codes_rule <- blocking_codes_rule[blocking_codes_rule != ""]
+                    # Find which of these the student has actually passed
+                    passed_blocking_codes <- intersect(blocking_codes_rule, passed_or_transferred_codes)
+
+                    if (length(passed_blocking_codes) > 0) {
+                       apply_restriction <- TRUE
+                       reason_code <- "ANTIREQUISITE_FAILED"
+                       # Store only the codes the student passed that triggered the rule
+                       details <- paste(passed_blocking_codes, collapse=";")
+                    }
+                  }
+
+                  # Apply the restriction if triggered
+                  if (apply_restriction) {
+                    # Set status to Not available
+                    subject_coordinates$subject_mark[target_idx] <- translate(language, "Not available")
+                    # Set reason code and details, only if no reason is already set
+                    if (is.na(subject_coordinates$unavailability_reason[target_idx])) {
+                       subject_coordinates$unavailability_reason[target_idx] <- reason_code
+                       subject_coordinates$unavailability_details[target_idx] <- details
+                    }
+                  }
                 }
+              }
             }
-            # --- End PCAP rule ---
-            
-            # JULIA 09/01/2023 cambiar full_name por abrv
-            subject_coordinates <- subject_coordinates %>% 
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[1], "R1", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[2], "R2", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[3], "R3", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[4], "R4", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[5], "R5", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[6], "R6", subject_mark)) %>%
-              mutate(subject_mark = ifelse(subject_code %in% discarded_list$subject_code, translate(language, "Discarded"), subject_mark)) %>% 
-              mutate(subject_mark = ifelse(subject_code %in% selected_list$subject_code, translate(language, "Selected"), subject_mark))
-            
-            if (!is.null(input$selected_semester)) {
-              subject_coordinates <- subject_coordinates %>% 
-                mutate(
-                  unavailability_reason = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), "semester_rule", unavailability_reason),
-                  subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
-                )
-            } else { 
-              subject_coordinates <- subject_coordinates %>% 
-                mutate(
-                  unavailability_reason = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), "semester_rule", unavailability_reason),
-                  subject_mark = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
-                )
-            }
-            
-            
-            # forzar y ordenar todas las notas posibles
-            # incloure les convalidades (Reconeguda)
-            subject_coordinates[subject_coordinates$subject_mark %in% c('A','NO','EX','M'),'subject_mark']=translate(language, "Pass")
-            subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Fail")
-            subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transfer")
-            
-            subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(
-                                   translate(language, "Pass"), 
-                                   translate(language, "Transfer"),
-                                   translate(language, "Fail"),
-                                   translate(language, "Not available"),
-                                   translate(language, "Discarded"),
-                                   translate(language, "Pending"),
-                                   "R1", "R2", "R3", "R4", "R5", "R6",
-                                   translate(language, "Selected")
-                                   ))
+            # --- End Apply Restrictions from CSV ---
+
+            # --- Apply Semester Availability Rule ---
+            # Check semester availability AFTER other rules, but BEFORE assigning R1-R6/Selected
+            # semester_unavailable_key <- "Not available (Not offered this semester)" # No longer needed
+             semester_reason_code <- "SEMESTER_FAILED"
+             if (!is.null(input$selected_semester)) {
+               subject_coordinates <- subject_coordinates %>% 
+                 mutate(
+                   # Set reason code and mark, only if no reason already exists
+                   unavailability_reason = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), semester_reason_code, unavailability_reason),
+                   # Set mark to Not available if this rule triggers
+                   subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                 )
+             } else { 
+               subject_coordinates <- subject_coordinates %>% 
+                 mutate(
+                   unavailability_reason = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), semester_reason_code, unavailability_reason),
+                   subject_mark = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                 )
+             }
+             # --- End Semester Availability Rule ---
+             
+             # --- Apply Ranks, Discarded, Selected Statuses ---
+             # These should overwrite the 'Not available' status if applicable
+             # JULIA 09/01/2023 cambiar full_name por abrv
+             subject_coordinates <- subject_coordinates %>% 
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[1], "R1", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[2], "R2", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[3], "R3", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[4], "R4", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[5], "R5", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% recommended_list$subject_code[6], "R6", subject_mark)) %>%
+               mutate(subject_mark = ifelse(subject_code %in% discarded_list$subject_code, translate(language, "Discarded"), subject_mark)) %>% 
+               mutate(subject_mark = ifelse(subject_code %in% selected_list$subject_code, translate(language, "Selected"), subject_mark))
+             
+             if (!is.null(input$selected_semester)) {
+               subject_coordinates <- subject_coordinates %>% 
+                 mutate(
+                   unavailability_reason = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), semester_reason_code, unavailability_reason),
+                   subject_mark = ifelse(!semester_number %in% c(0,input$selected_semester) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                 )
+             } else { 
+               subject_coordinates <- subject_coordinates %>% 
+                 mutate(
+                   unavailability_reason = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks) & is.na(unavailability_reason), semester_reason_code, unavailability_reason),
+                   subject_mark = ifelse(!semester_number %in% c(0,1) & !(subject_mark %in% final_passed_transfer_marks), translate(language,"Not available"), subject_mark)
+                 )
+             }
+             
+             # forzar y ordenar todas las notas posibles
+             # incloure les convalidades (Reconeguda)
+             subject_coordinates[subject_coordinates$subject_mark %in% c('A','NO','EX','M'),'subject_mark']=translate(language, "Pass")
+             subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Fail")
+             subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transfer")
+             
+             subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(
+                                    translate(language, "Pass"), 
+                                    translate(language, "Transfer"),
+                                    translate(language, "Fail"),
+                                    translate(language, "Not available"),
+                                    translate(language, "Discarded"),
+                                    translate(language, "Pending"),
+                                    "R1", "R2", "R3", "R4", "R5", "R6",
+                                    translate(language, "Selected")
+                                    ))
 
             color_palette <- color_palette_base # Use the base definition
             
@@ -1463,15 +1594,22 @@ subjectEnrollmentServer <- function(id, language) {
             }
             # --- End ECTS Calculation ---
 
-            # --- Check Prerequisites for ALL potential recommendations --- 
+            # --- Check Prerequisites AND Restrictions for ALL potential recommendations --- 
             # Add columns to arranged_distances to store check results
             arranged_distances <- arranged_distances %>%
-              mutate(meets_std_prereqs = NA, meets_ects_prereq = NA, credits = NA)
+              mutate(
+                  meets_std_prereqs = NA,
+                  meets_restrictions = NA, # Combined check for MIN_ECTS and ANTIREQUISITE
+                  credits = NA
+              )
+            
+            # Get restrictions data
+            restrictions <- degree_data$restrictions_data
 
             for(idx in 1:nrow(arranged_distances)) {
               potential_subject_code <- arranged_distances$subject_code[idx]
 
-              # Check standard prerequisites
+              # 1. Check standard prerequisites (from prerequisites_data)
               subject_prereqs <- prerequisites %>% 
                 filter(subject_code == potential_subject_code) %>% 
                 pull(prerequisite_code)
@@ -1481,27 +1619,54 @@ subjectEnrollmentServer <- function(id, language) {
               }
               arranged_distances$meets_std_prereqs[idx] <- all_standard_prereqs_met
 
-              # Check special ECTS prerequisites
-              meets_ects_req <- TRUE # Assume true unless proven otherwise
-              required_ects <- NA
-              if (potential_subject_code == "05.615") required_ects <- 120
-              else if (potential_subject_code == "05.616") required_ects <- 180 # TFG check
-
-              if (!is.na(required_ects) && earned_ects_for_rec < required_ects) {
-                meets_ects_req <- FALSE
+              # 2. Check restrictions (MIN_ECTS, ANTIREQUISITE from restrictions_data)
+              meets_all_restrictions <- TRUE # Assume true unless a restriction fails
+              if (!is.null(restrictions)) {
+                # Find rules specifically for this potential subject
+                subject_rules <- restrictions %>% filter(restricted_subject_code == potential_subject_code)
+                if (nrow(subject_rules) > 0) {
+                  # Normally, a subject would have only one row in the restrictions CSV,
+                  # but iterate just in case (though the logic below assumes one rule)
+                  for (r_idx in 1:nrow(subject_rules)) { 
+                    rule <- subject_rules[r_idx, ]
+                    
+                    # Check MIN_ECTS rule
+                    if (!is.na(rule$min_ects)) {
+                      if (earned_ects_for_rec < rule$min_ects) {
+                        meets_all_restrictions <- FALSE
+                        break # Restriction failed, no need to check others for this subject
+                      }
+                    }
+                    
+                    # Check ANTIREQUISITE rule (only if MIN_ECTS didn't already fail)
+                    if (meets_all_restrictions && !is.na(rule$antirequisites)) { # Check meets_all_restrictions instead of !apply_restriction
+                      blocking_codes_rule <- unlist(str_split(rule$antirequisites, ";"))
+                      # Filter out empty strings that might result from splitting
+                      blocking_codes_rule <- blocking_codes_rule[blocking_codes_rule != ""]
+                      # Find which of these the student has actually passed
+                      passed_blocking_codes <- intersect(blocking_codes_rule, passed_or_transferred_codes)
+                      
+                      if (length(passed_blocking_codes) > 0) {
+                        # Set restriction flag to FALSE and break
+                         meets_all_restrictions <- FALSE
+                         break # Restriction failed
+                      }
+                    }
+                  }
+                }
               }
-              arranged_distances$meets_ects_prereq[idx] <- meets_ects_req
+              arranged_distances$meets_restrictions[idx] <- meets_all_restrictions
 
-              # Store credits for budget check later
+              # 3. Store credits (needed for budget check later)
               subject_credits_val <- degree_data$subjects_data %>%
                  filter(subject_code == potential_subject_code) %>%
                   pull(credits)
               arranged_distances$credits[idx] <- ifelse(length(subject_credits_val) > 0 && is.numeric(subject_credits_val[1]), subject_credits_val[1], NA)
             }
 
-            # Filter down to valid candidates based on prereqs
+            # Filter down to valid candidates based on prereqs AND restrictions
             valid_candidates <- arranged_distances %>%
-                filter(meets_std_prereqs == TRUE & meets_ects_prereq == TRUE & !is.na(credits))
+                filter(meets_std_prereqs == TRUE & meets_restrictions == TRUE & !is.na(credits))
  
             # --- Build Final Recommendation List with Simplified Prioritization ---
             filtered_recommendations <- character() # Initialize empty list

@@ -3,7 +3,7 @@ load_files <- function(){
   files <- list()
   
   # Define the total number of files and initialize the progress bar
-  total_files_to_load <- 13
+  total_files_to_load <- 14
   message("Loading CSV files:")
   pb <- utils::txtProgressBar(min = 0, max = total_files_to_load, style = 3, width = 50, char = "=")
   current_file_count <- 0
@@ -138,6 +138,21 @@ load_files <- function(){
                                                 colClasses=c("character", "character"))
   # Rename columns to be more descriptive
   colnames(files$prerequisites_INFORMATICA) <- c("prerequisite_code", "subject_code")
+  current_file_count <- current_file_count + 1
+  utils::setTxtProgressBar(pb, current_file_count)
+
+  # Load restrictions file
+  files$restrictions_INFORMATICA <- read.table(system.file("data_files", "restrictions_INFORMATICA.csv",
+                                                           package = "visualenrollment"),
+                                               header=TRUE,
+                                               sep=",",
+                                               colClasses=c("character", "numeric", "character"),
+                                               comment.char = "", 
+                                               quote = '"',
+                                               na.strings = c("", "NA") # Treat empty strings as NA
+                                               )
+  # Rename columns to be more descriptive
+  colnames(files$restrictions_INFORMATICA) <- c("restricted_subject_code", "min_ects", "antirequisites")
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
 
