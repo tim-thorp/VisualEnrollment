@@ -10,17 +10,11 @@ License: file LICENSE
 Depends:
     R (>= 4.2.0)
 Imports:
-    config,
-    deldir,
     devtools,
     dplyr,
-    ggforce,
-    ggrepel,
     htmltools,
     lubridate,
-    magrittr,
     MASS,
-    patchwork,
     readr,
     renv,
     scales,
