@@ -13,7 +13,7 @@ translate <- function(lang, key) {
 show_translated_notice <- function(lang, text) {
   showModal(modalDialog(
     title = translate(lang,"Information"),
-    translate(lang, text),
-    footer = modalButton("Ok")
+    HTML(translate(lang, text)),
+    footer = modalButton("OK")
   ))
 }
