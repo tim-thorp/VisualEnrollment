@@ -4881,7 +4881,7 @@
     "shiny.fluent": {
       "Package": "shiny.fluent",
       "Version": "0.4.0",
-      "Source": "GitHub",
+      "Source": "Repository",
       "Title": "Microsoft Fluent UI for Shiny Apps",
       "Authors@R": "c( person(\"Jakub\", \"Sobolewski\", role = c(\"aut\", \"cre\"), email = \"opensource+jakub.sobolewski@appsilon.com\"), person(\"Kamil\", \"Żyła\", role = \"aut\", email = \"kamil@appsilon.com\"), person(\"Marek\", \"Rogala\", role = \"aut\", email = \"marek@appsilon.com\"), person(\"Appsilon Sp. z o.o.\", role = \"cph\", email = \"opensource@appsilon.com\") )",
       "Description": "A rich set of UI components for building Shiny applications, including inputs, containers, overlays, menus, and various utilities. All components from Fluent UI (the underlying JavaScript library) are available and have usage examples in R.",
@@ -4889,7 +4889,6 @@
       "License": "LGPL-3",
       "Encoding": "UTF-8",
       "LazyData": "true",
-      "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.1",
       "Depends": [
         "R (>= 2.10)"
@@ -4928,27 +4927,21 @@
         "withr"
       ],
       "Config/testthat/edition": "3",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "shiny.fluent",
-      "RemoteUsername": "Appsilon",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "9f67df1da0d2f94e0d31db93ea4acbc0f38043d0",
       "NeedsCompilation": "no",
       "Author": "Jakub Sobolewski [aut, cre], Kamil Żyła [aut], Marek Rogala [aut], Appsilon Sp. z o.o. [cph]",
-      "Maintainer": "Jakub Sobolewski <opensource+jakub.sobolewski@appsilon.com>"
+      "Maintainer": "Jakub Sobolewski <opensource+jakub.sobolewski@appsilon.com>",
+      "Repository": "CRAN"
     },
     "shiny.react": {
       "Package": "shiny.react",
       "Version": "0.4.0",
-      "Source": "GitHub",
+      "Source": "Repository",
       "Title": "Tools for Using React in Shiny",
       "Authors@R": "c( person(\"Jakub\", \"Sobolewski\", role = c(\"aut\", \"cre\"), email = \"opensource+jakub.sobolewski@appsilon.com\"), person(\"Kamil\", \"Żyła\", role = \"aut\", email = \"kamil@appsilon.com\"), person(\"Marek\", \"Rogala\", role = \"aut\", email = \"marek@appsilon.com\"), person(\"Appsilon Sp. z o.o.\", role = \"cph\", email = \"opensource@appsilon.com\") )",
       "URL": "https://appsilon.github.io/shiny.react/, https://github.com/Appsilon/shiny.react",
       "Description": "A toolbox for defining React component wrappers which can be used seamlessly in Shiny apps.",
       "License": "LGPL (>= 3)",
       "Encoding": "UTF-8",
-      "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.1",
       "VignetteBuilder": "knitr",
       "Imports": [
@@ -4975,20 +4968,15 @@
         "testthat",
         "withr"
       ],
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "shiny.react",
-      "RemoteUsername": "Appsilon",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "7191bec17061fc016c1cc9cd91d439974feb5c83",
       "NeedsCompilation": "no",
       "Author": "Jakub Sobolewski [aut, cre], Kamil Żyła [aut], Marek Rogala [aut], Appsilon Sp. z o.o. [cph]",
-      "Maintainer": "Jakub Sobolewski <opensource+jakub.sobolewski@appsilon.com>"
+      "Maintainer": "Jakub Sobolewski <opensource+jakub.sobolewski@appsilon.com>",
+      "Repository": "CRAN"
     },
     "shiny.router": {
       "Package": "shiny.router",
       "Version": "0.3.1",
-      "Source": "GitHub",
+      "Source": "Repository",
       "Type": "Package",
       "Title": "Basic Routing for Shiny Web Applications",
       "Authors@R": "c( person(\"Ryszard\", \"Szymański\", email = \"opensource+ryszard@appsilon.com\", role = c(\"cre\", \"aut\")), person(\"Jakub\", \"Nowicki\", email = \"kuba@appsilon.com\", role = c(\"aut\")), person(\"Filip\", \"Stachura\", email = \"filip@appsilon.com\", role = c(\"aut\")), person(\"Dominik\", \"Krzemiński\", email = \"raymon92@gmail.com\", role = c(\"aut\")), person(\"Krystian\", \"Igras\", email = \"krystian8207@gmail.com\", role = c(\"aut\")), person(\"Servet Ahmet\", \"Çizmeli\", email = \"ahmet.cizmeli@contractors.appsilon.com\", role = c(\"ctb\")), person(\"Appsilon Sp. z o.o.\", role = \"cph\", email = \"opensource@appsilon.com\") )",
@@ -5011,15 +4999,10 @@
         "spelling",
         "testthat"
       ],
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "shiny.router",
-      "RemoteUsername": "Appsilon",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "3c9106aca205842d8060481745729eb8e1615744",
       "NeedsCompilation": "no",
       "Author": "Ryszard Szymański [cre, aut], Jakub Nowicki [aut], Filip Stachura [aut], Dominik Krzemiński [aut], Krystian Igras [aut], Servet Ahmet Çizmeli [ctb], Appsilon Sp. z o.o. [cph]",
-      "Maintainer": "Ryszard Szymański <opensource+ryszard@appsilon.com>"
+      "Maintainer": "Ryszard Szymański <opensource+ryszard@appsilon.com>",
+      "Repository": "CRAN"
     },
     "shinyjs": {
       "Package": "shinyjs",
