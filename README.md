@@ -15,8 +15,8 @@ This Shiny application helps students:
 
 ### Prerequisites
 
-- [R](https://www.r-project.org/) (v4.0.0 or higher)
-- [RStudio](https://posit.co/download/rstudio-desktop/) (v1.4 or higher)
+- [R](https://www.r-project.org/) (v4.5.0 or higher)
+- [RStudio](https://posit.co/download/rstudio-desktop/) (2024.12 or higher)
 - [Git](https://git-scm.com/downloads)
 
 ### Cloning the Repository
@@ -48,30 +48,12 @@ renv::restore()
 
 If you're new to renv, it handles project-specific package management, ensuring everyone uses the same package versions.
 
-### GitHub Authentication
-
-Some dependencies are installed from GitHub, which requires authentication. To set up:
-
-1. [Create a Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) on GitHub
-2. Set up your token in R:
-   ```r
-   usethis::edit_r_environ()
-   ```
-3. Add this line to the .Renviron file that opens:
-   ```
-   GITHUB_PAT=your_token_here
-   ```
-4. Save and restart R
-
 ### Running the Application
 
-To run the application:
-
-```r
-source("app.R")
-```
-
-Or click the "Run App" button in RStudio if you have app.R open.
+To run the application from within RStudio:
+1. Open the `app.R` file.
+2. Select all the code in the file (e.g., using Cmd+A or Ctrl+A).
+3. Click the "Run the current line or selection" button (or use the corresponding keyboard shortcut).
 
 ## Project Structure
 
@@ -91,29 +73,28 @@ VisualEnrollment/
 │   ├── _disable_autoload.R          # Disables Shiny autoload functionality  
 │   ├── app_config.R                 # Configuration helpers  
 │   ├── asignatura.R                 # Functions for subjects and semesters  
-│   ├── informaticaServer.R          # Server-side logic for computer science program  
-│   ├── informaticaUI.R              # User interface for computer science program  
+│   ├── informaticaServer.R          # Server-side logic  
+│   ├── informaticaUI.R              # User interface 
 │   ├── load_files.R                 # Functions to load data files  
 │   ├── load_translations.R          # Functions to load translation files  
-│   ├── setup.R                      # Setup environment and packages  
 │   ├── theme.R                      # UI styling with Fluent UI  
 │   ├── translations.R               # Translation functionality  
 │   ├── visualenrollmentApp.R        # Main Shiny app router/setup  
-│   └── zzz.R                        # Last file loaded, library setup  
 │  
 ├── inst/                            # Installation directory  
 │   ├── data_files/                  # Data files directory  
 │   │   ├── Dabs_INFORMATICA.csv     # Absolute semester distance matrix  
 │   │   ├── Ddif_INFORMATICA.csv     # Subject difficulty distance matrix  
 │   │   ├── Dpop_INFORMATICA.csv     # Popularity distance matrix  
-│   │   ├── Dreq_INFORMATICA.csv     # Prerequisites distance matrix  
 │   │   ├── Dso1_INFORMATICA.csv     # Semester 1 overlaps matrix  
 │   │   ├── Dso2_INFORMATICA.csv     # Semester 2 overlaps matrix  
 │   │   ├── aeps_INFORMATICA.csv     # Student academic record data (not included in repository)  
 │   │   ├── assignatures_INFORMATICA.csv  # Subject information  
 │   │   ├── idps_pilot               # Pilot student IDs  
 │   │   ├── noms_INFORMATICA.csv     # Subject names in different languages  
+│   │   ├── prerequisites_INFORMATICA.csv # Prerequisite course relationships
 │   │   ├── recomanacions_INFORMATICA.csv  # Recommendation data (not included in repository)  
+│   │   ├── restrictions_INFORMATICA.csv # Other course enrollment restrictions
 │   │   ├── solap1_INFORMATICA.csv   # Semester 1 schedule overlap data  
 │   │   ├── solap2_INFORMATICA.csv   # Semester 2 schedule overlap data  
 │   │   └── tipologia_INFORMATICA.csv  # Subject typology information  
