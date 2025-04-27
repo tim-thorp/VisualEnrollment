@@ -1245,6 +1245,8 @@ subjectEnrollmentServer <- function(id, language) {
             session$sendCustomMessage(type = "show", message = ".workload_asignatures")
             session$sendCustomMessage(type = "show", message = ".download_asignatures")
             session$sendCustomMessage(type = "show", message = ".cal_asignatures")
+            # Show the scroll actionLink using shinyjs
+            shinyjs::show("scroll_to_cal_container")
             if(length(selected_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% selected_list$subject_code) {
               selected_list$subject_code <- selected_list$subject_code[ !selected_list$subject_code %in% clicked_list$subject_code[[1]] ]
             } else {
@@ -1593,10 +1595,22 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
         session$sendCustomMessage(type = "show",  message = ".selecciona_asignatures") # Ensure selection step UI is visible
+        # Hide the scroll actionLink when going back to step 2
+        shinyjs::hide("scroll_to_cal_container")
       })
       
-      # Events: Previous, next, search, etc -----------------------------------------------------------------
+      # Events: Previous, continue, search, etc -----------------------------------------------------------------
       
+      # --- Observe click on the scroll-down link ---
+      observeEvent(input$scroll_to_cal_container, {
+        # Use shinyjs to run JavaScript that scrolls to the calendar plot container
+        shinyjs::runjs(sprintf(
+          "document.getElementById('%s').scrollIntoView({ behavior: 'smooth' });",
+          session$ns("cal_plot_container")
+        ))
+      })
+      # ---------------------------------------------
+
       observeEvent(input$previous1, {
         clicked_list$subject_code = character() 
         discarded_list$subject_code = character()
@@ -1609,6 +1623,8 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
         updateSliderInput(session, "workload", value = 15) # Reset workload slider
+        # Hide the scroll actionLink
+        shinyjs::hide("scroll_to_cal_container")
       })
       
       observeEvent(input$previous2, {
@@ -1624,9 +1640,11 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
         session$sendCustomMessage(type = "hide", message = ".widgets_cal")
         updateSliderInput(session, "workload", value = 15) # Reset workload slider
+        # Hide the scroll actionLink
+        shinyjs::hide("scroll_to_cal_container")
       })
       
-      observeEvent(input$next_button, {
+      observeEvent(input$continue_button, {
         enrollment_step$current_step <- 1
         session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
       })
@@ -1667,6 +1685,8 @@ subjectEnrollmentServer <- function(id, language) {
         session$sendCustomMessage(type = "hide",  message = ".step-sliders")
         session$sendCustomMessage(type = "hide",  message = ".step-recommend")
         session$sendCustomMessage(type = "show",  message = ".step-convalida")
+        # Hide the scroll arrow on student change/reset
+        session$sendCustomMessage(type = "hide", message = paste0("#", session$ns("scroll_to_cal_container")))
         
       }, ignoreNULL = TRUE, ignoreInit = TRUE)
       

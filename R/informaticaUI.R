@@ -1,6 +1,7 @@
 subjectEnrollmentUI <- function(id, language) {
   namespace <- NS(id)
   tagList(
+    shinyjs::useShinyjs(),
     fluent_header(
       lang = language,
       title = "Visual Enrollment", 
@@ -30,8 +31,8 @@ subjectEnrollmentUI <- function(id, language) {
               "Here's your academic status. Mark subjects as validated or discarded (it is optional)"
             )),
             actionButton(
-              namespace("next_button"),
-              label = translate(language, "Next"),
+              namespace("continue_button"),
+              label = translate(language, "Continue"),
               onclick = "$('.step-convalida').hide();$('.step-sliders').show();$('.step-recommend').show();"
             )
             
@@ -191,6 +192,19 @@ subjectEnrollmentUI <- function(id, language) {
                     )
                   )
                 ),
+                # Wrap the actionLink in a div for centering
+                tags$div(
+                  style = "text-align: center; margin-top: 5px;",
+                  actionLink(
+                    inputId = namespace("scroll_to_cal_container"),
+                    label = tagList(
+                      icon("chevron-down", style = "font-size: 2.0em; vertical-align: middle; margin-right: 5px;"),
+                      tags$span(translate(language, "Continue"), style = "font-size: 1.5em; vertical-align: middle;")
+                    ),
+                    style = "display: inline-block; text-decoration: none; color: inherit;",
+                    class = "scroll-link-hidden"
+                  )
+                ),
                 uiOutput(namespace("graf_hover_info"), 
                   class ="graf_hover_info", 
                   # JULIA 07/01/2023 cambiar el estilo en la propia función
@@ -335,6 +349,8 @@ subjectEnrollmentUI <- function(id, language) {
         fluent_main(
           div(
             class = "cal_asignatures ms-Grid-col ms-sm12 cal",
+            # Add a unique ID to the calendar container
+            id = namespace("cal_plot_container"), 
             tagList(
               h2(translate(language, "Graded Activity Calendar")),
               plotOutput(namespace("cal"))
