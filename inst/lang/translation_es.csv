@@ -32,18 +32,17 @@ Get recommendation of subjects to enroll,Muestra el ranking de asignaturas recom
 Recommend,Recomienda asignaturas
 "Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hemos cargado tu expediente académico. Selecciona las asignaturas que piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente."
 The system has recommended in shades of yellow the most appropriate subjects to enroll according to your preferences.,El sistema te ha recomendado en tonos de amarillo las asignaturas más adecuadas a matricular según tus preferencias.
-Select on the map up to 6 subjects that you want to enroll.,Selecciona en el mapa hasta 6 asignaturas que quieras matricular.
+"On the map, select the subjects that you want to enroll in.",Selecciona en el mapa las asignaturas que quieras matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descubre la carga de trabajo de las asignaturas selecionadas. Las fechas de entrega y las actividades son aproximadas.
 Restart again,Volver a empezar
 Download,Descargar
 Information,Información
-Remove one of your selected subjects before adding a new subject.,Elimina una de les asugnaturas seleccionadas antes de añadir una nueva asignatura.
+"If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>.","Si quieres cursar más de 36 créditos, primero debes <a href='https://campus.uoc.edu/estudiant/tramits/es/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>solicitar una autorización</a>."
 Total number of activities,Nº total de actividades
 Average daily activities,Nº de días con actividades
 Percentage of overlapping (days with more than 1 activity),Porcentaje de solapamiento (días con más de una actividad)
 No. of days until deadline,Nº de días hasta la entrega
-Select on the map up to 6 subjects that you think are more suitable for your enrollment and discover their aproximate workload of the selected subjects,Selecciona hasta 6 asignaturas que creas más adecuades para tu matrícula y descubre su carga de trabajo aproximada
-The system has marked in shades of yellow the ranking of the 6 most recommended subjects for your enrollment.,El sistema ha marcado en tonos de amarillo el ranking de las 6 asignaturas más recomendadas para tu matrícula.
+The system has marked in shades of yellow the ranking of the most recommended subjects for your enrollment.,El sistema ha marcado en tonos de amarillo el ranking de las asignaturas más recomendadas para tu matrícula.
 Subject status,Estado de la asignatura
 Pending,Sin cursar
 Pass,Superada

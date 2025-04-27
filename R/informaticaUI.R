@@ -147,7 +147,7 @@ subjectEnrollmentUI <- function(id, language) {
                 "The system has recommended in shades of yellow the most appropriate subjects to enroll according to your preferences."
               )),
               h4(translate(language, 
-                "Select on the map up to 6 subjects that you want to enroll."
+                "On the map, select the subjects that you want to enroll in."
               )),
               uiOutput(namespace("uiTipologia")),
               uiOutput(namespace("search_subject")),

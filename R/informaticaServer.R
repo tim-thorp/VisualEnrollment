@@ -1248,11 +1248,39 @@ subjectEnrollmentServer <- function(id, language) {
             if(length(selected_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% selected_list$subject_code) {
               selected_list$subject_code <- selected_list$subject_code[ !selected_list$subject_code %in% clicked_list$subject_code[[1]] ]
             } else {
-              if(length(na.omit(selected_list$subject_code))==6){
-                show_translated_notice(language, "Remove one of your selected subjects before adding a new subject.")
-                return(NULL)
+              # Calculate current and clicked ECTS
+              degree_data_click <- degree_data() # Get current data
+              current_selected_codes <- na.omit(selected_list$subject_code)
+              current_ects <- 0
+              if (length(current_selected_codes) > 0 && !is.null(degree_data_click$subjects_data)) {
+                 current_ects <- degree_data_click$subjects_data %>%
+                   filter(subject_code %in% current_selected_codes) %>%
+                   # Ensure credits are numeric and handle potential NAs
+                   mutate(credits_num = as.numeric(credits)) %>%
+                   summarise(total_ects = sum(credits_num, na.rm = TRUE)) %>%
+                   pull(total_ects)
               }
-              selected_list$subject_code <- unique(c(clicked_list$subject_code[[1]], selected_list$subject_code))[1:6]
+              
+              clicked_subject_code <- clicked_list$subject_code[[1]]
+              clicked_ects <- 0
+              if (!is.null(degree_data_click$subjects_data)) {
+                clicked_ects_val <- degree_data_click$subjects_data %>%
+                  filter(subject_code == clicked_subject_code) %>%
+                  pull(credits)
+                # Ensure credits are numeric and handle potential NAs
+                if(length(clicked_ects_val) > 0 && !is.na(clicked_ects_val[1])) {
+                  clicked_ects <- as.numeric(clicked_ects_val[1])
+                }
+              }
+
+              # Check if adding the subject exceeds 36 ECTS
+              if((current_ects + clicked_ects) > 36) {
+                notification_message_key <- "If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>."
+                show_translated_notice(language, notification_message_key)
+                return(NULL) # Stop execution for this click
+              }
+              # Add subject if within limits
+              selected_list$subject_code <- unique(c(clicked_list$subject_code[[1]], selected_list$subject_code))
             }
           }
         }
@@ -1559,7 +1587,7 @@ subjectEnrollmentServer <- function(id, language) {
           }
         }
         
-        # show_translated_notice(language, "The system has marked in shades of yellow the ranking of the 6 most recommended subjects for your enrollment.")
+        # show_translated_notice(language, "The system has marked in shades of yellow the ranking of the most recommended subjects for your enrollment.")
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")
