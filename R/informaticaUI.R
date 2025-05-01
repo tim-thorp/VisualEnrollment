@@ -145,7 +145,7 @@ subjectEnrollmentUI <- function(id, language) {
             class="selecciona_asignatures",
             tagList(
               h4(translate(language, 
-                "The system has recommended in shades of yellow the most appropriate subjects to enroll according to your preferences."
+                "The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences."
               )),
               h4(translate(language, 
                 "On the map, select the subjects that you want to enroll in."

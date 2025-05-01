@@ -31,12 +31,12 @@ subjectEnrollmentServer <- function(id, language) {
         "#cccccc", # Not available 
         "#e0e0e0", # Discarded
         "#f9f9f9", # Pending 
-        "#ecff6d", # R1
-        "#efff86", # R2
-        "#f3ffa0", # R3
-        "#f6ffb9", # R4
-        "#f9ffd3", # R5
-        "#fdffec", # R6
+        "#22b33b", # R1
+        "#4adb63", # R2
+        "#8cff8c", # R3
+        "#acffa3", # R4
+        "#cdffc1", # R5
+        "#e8ffe0", # R6
         "#4875fb"  # Selected
       )
       
@@ -1754,7 +1754,7 @@ subjectEnrollmentServer <- function(id, language) {
           }
         }
         
-        # show_translated_notice(language, "The system has marked in shades of yellow the ranking of the most recommended subjects for your enrollment.")
+        # show_translated_notice(language, "The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.")
         session$sendCustomMessage(type = "hide",  message = ".cal_asignatures")
         session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
         session$sendCustomMessage(type = "hide", message = ".download_asignatures")

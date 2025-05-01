@@ -31,7 +31,7 @@ Separate the subjects that have more overlapping deadlines,Separa assignatures q
 Get recommendation of subjects to enroll,Mostra el ranking d'assignatures recomanades per la teva matricula
 Recommend,Recomana assignatures
 "Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hem carregat el teu expedient acadèmic. Selecciona les assignatures que penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent."
-The system has recommended in shades of yellow the most appropriate subjects to enroll according to your preferences.,El sistema t'ha recomanat en tons de groc les assignatures més adequades a matricular segons les teves preferències.
+The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema t'ha recomanat en tons de verd les assignatures més adequades a matricular segons les teves preferències.
 "On the map, select the subjects that you want to enroll in.",Selecciona en el mapa les assignatures que vulguis matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descobreix la càrrega de treball de les assignatures selecionadas. Les dates de lliurament són aproximades.
 Restart again,Torna a començar
@@ -42,7 +42,7 @@ Total number of activities,Núm. total d'activitats
 Average daily activities,Núm. de dies amb activitats
 Percentage of overlapping (days with more than 1 activity),Percentatge de solapament (dies amb més d'una activitat)
 No. of days until deadline,Núm. de dies fins al lliurament
-The system has marked in shades of yellow the ranking of the most recommended subjects for your enrollment.,El sistema ha marcat en tons de groc el ranking de les assignatures més recomendades per a la teva matricula.
+The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.,El sistema ha marcat en tons de verd el ranking de les assignatures més recomendades per a la teva matricula.
 Subject status,Estat de l'assignatura
 Pending,Sense cursar
 Pass,Superada

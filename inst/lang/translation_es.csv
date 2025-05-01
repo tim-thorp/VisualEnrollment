@@ -31,7 +31,7 @@ Separate the subjects that have more overlapping deadlines,Separa asignaturas qu
 Get recommendation of subjects to enroll,Muestra el ranking de asignaturas recomendadas para tu matrícula
 Recommend,Recomienda asignaturas
 "Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hemos cargado tu expediente académico. Selecciona las asignaturas que piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente."
-The system has recommended in shades of yellow the most appropriate subjects to enroll according to your preferences.,El sistema te ha recomendado en tonos de amarillo las asignaturas más adecuadas a matricular según tus preferencias.
+The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema te ha recomendado en tonos de verde las asignaturas más adecuadas a matricular según tus preferencias.
 "On the map, select the subjects that you want to enroll in.",Selecciona en el mapa las asignaturas que quieras matricular.
 Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descubre la carga de trabajo de las asignaturas selecionadas. Las fechas de entrega y las actividades son aproximadas.
 Restart again,Volver a empezar
@@ -42,7 +42,7 @@ Total number of activities,Nº total de actividades
 Average daily activities,Nº de días con actividades
 Percentage of overlapping (days with more than 1 activity),Porcentaje de solapamiento (días con más de una actividad)
 No. of days until deadline,Nº de días hasta la entrega
-The system has marked in shades of yellow the ranking of the most recommended subjects for your enrollment.,El sistema ha marcado en tonos de amarillo el ranking de las asignaturas más recomendadas para tu matrícula.
+The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.,El sistema ha marcado en tonos de verde el ranking de las asignaturas más recomendadas para tu matrícula.
 Subject status,Estado de la asignatura
 Pending,Sin cursar
 Pass,Superada
