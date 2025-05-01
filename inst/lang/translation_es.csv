@@ -1,122 +1,122 @@
-en,es
-Language,Idioma
-Change language,Cambia de idioma
-Welcome to the enrollment recommendation tool Visual Enrollment,Bienvenido a la herramienta de recomendación de matricula Visual Enrollment
-Use your UOC user and password to access with your academic record,Utiliza tu usuario y contraseña de la UOC para acceder con tu expediente académico
-Login,Iniciar sesión
-User,Usuario
-Password,Contraseña
-Enter without my academic report,Entrar sin mi expediente
-About Visual Enrollment,Sobre Visual Enrollment
-Back,Volver
-Previous,Anterior
-Choose degree,Elige grado
-Computer science degree,Grado de informatica
-Applied data science,Ciencias de datos aplicadas
-Choose a semester:,Elige un semestre:
-Choose a student:,Elige un estudiante:
-Importance of semi-annual organization:,Importancia de la organitzación semestral:
-Max radius for bubbles:,Radio máximo para las burbujas:
-Configuration,Configuración
-Assign a value to the topics based on their importance:,Asigna un valor a los siguientes criterios para separar en el mapa las asignaturas que no deberían matricularse juntas según tus preferencias.
-Difficulty:,Dificultad:
-Not relevant,No es relevante
-Separate the most difficult subjects,Separa asignaturas que al matricularse juntas se suspenden más a menudo
-Popularity:,Popularidad:
-Separate subjects that are never enrolled together,Separa asignaturas que casi nunca se matriculan juntas
-Previous requirements:,Requisitos previos:
-Separate subjects that are taken in different semesters,Separa asignaturas que se han de cursar en distintos semestres
-Overlaps between deadlines:,Solapamientos entre entregas:
-Separate the subjects that have more overlapping deadlines,Separa asignaturas que tienen más actividades solapadas
-Get recommendation of subjects to enroll,Muestra el ranking de asignaturas recomendadas para tu matrícula
-Recommend,Recomienda asignaturas
-"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hemos cargado tu expediente académico. Selecciona las asignaturas que piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente."
-The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema te ha recomendado en tonos de verde las asignaturas más adecuadas a matricular según tus preferencias.
-"On the map, select the subjects that you want to enroll in.",Selecciona en el mapa las asignaturas que quieras matricular.
-Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descubre la carga de trabajo de las asignaturas selecionadas. Las fechas de entrega y las actividades son aproximadas.
-Restart again,Volver a empezar
-Download,Descargar
-Information,Información
-"If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>.","Si quieres cursar más de 36 créditos, primero debes <a href='https://campus.uoc.edu/estudiant/tramits/es/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>solicitar una autorización</a>."
-Total number of activities,Nº total de actividades
-Average daily activities,Nº de días con actividades
-Percentage of overlapping (days with more than 1 activity),Porcentaje de solapamiento (días con más de una actividad)
-No. of days until deadline,Nº de días hasta la entrega
-The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.,El sistema ha marcado en tonos de verde el ranking de las asignaturas más recomendadas para tu matrícula.
-Subject status,Estado de la asignatura
-Pending,Sin cursar
-Pass,Superada
-Fail,No superada
-Transfer,Convalidada
-Selected,Seleccionada
-An Excel file with the selected subjects will be downloaded.,Se descargará un archivo Excel con las asignaturas seleccionadas.
-Subjects:,Asignaturas:
-Day of the semester,Día del semestre
-Number of concurrent activities,Número de actividades concurrentes
-Continue,Siguiente
-Not available,No disponible
-Choose recommender:,Elige recomendador:
-Random,Aleatorio
-Distance,Distancia
-Distance adjustment for failed or non-submitted subjects:,Ajuste de distancia para asignaturas suspedidas o no presentadas:
-Deadline dates and activities are approximate.,Las fechas de entrega y las actividades son aproximadas.
-TFM:,TFM (Ex: 05.616):
-Academic record,Tu expediente
-Discard,Descartes
-Discarded,Descartada
-Preferences,Preferencias
-Recommendations,Recomendaciones
-Selection,Selección
-Less important,Menos importante
-More important,Más importante
-"If you need it, you can highlight the subjects according to their typology.","Si lo necesitas, puedes destacar las asignaturas según su tipología."
-Highlight each type of subject,Destaca un tipo de asignatura
-All,Todas
-You can also search them.,También puedes buscarlas.
-Search subject,Buscar asignatura
-Calculate the workload of the selected subjects.,Calcula la carga de trabajo de las asignaturas selecionadas.
-"You can specify the number of days you think you are going to dedicate to each activity:","Si quieres, puedes especificar el nº de días que crees que vas a dedicar a cada actividad:"
-"When you have selected the most suitable combination of subjects, you can download your enrollment configuration.",Cuando hayas seleccionado la combinación de asignaturas más adecuadas puedes descargar tu configuración de matrícula.
-Download enrolment,Descargar matrícula
-Graded Activity Calendar,Calendario de entrega de actividades evaluables
-Subject recommender,Recomendador de assignatures
-Map of subjects,Mapa de asignaturas
-¡Gracias por utilizar Visual Enrollment!,¡Gracias por utilizar Visual Enrollment!
-Índice de idoinedad de matricula,Índice de idoinedad de matricula
-Tus preferencias y selección para la siguiente matricula,Tus preferencias y selección para la siguiente matricula
-Subject,Asignatura
-Semester,Semestre
-Order,Orden
-Mark,Nota
-With Honors,Matrícula de Honor
-Excellent,Excelente
-Good,Notable
-Satisfactory,Aprobado
-Withdrawal,No Presentado
-Recommendation,"Recomendación"
-Recommendations & selection,"Recomendaciones y selección"
-Prerequisites:,"Prerrequisitos:"
-None,"Ninguno"
-Status:,"Estado:"
-Type:,"Tipo:"
-Have completed at least,"Haber superado como mínimo"
-Desired ECTS for Enrollment:,"ECTS deseados para la matrícula:"
-"Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.","Selecciona los ECTS a matricular. Normalmente 1 asignatura = 6 ECTS, excepto prácticas o TFG."
-Choose Itinerary:,Elige Itinerario:
-Computer Engineering,Ingeniería de computadores
-Software Engineering,Ingeniería del software
-Computing,Computación
-Information Systems,Sistemas de información
-Information Technology,Tecnologías de la información
-Not Sure,No estoy seguro
-Itinerary:,Itinerario:
-Elective,Optativa
-"Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet.","Seleccionar un itinerario priorizará la recomendación de asignaturas de esa rama. Elige 'No estoy seguro' si aún no te has decidido."
-Main Settings,Configuración Principal
-Advanced Settings,Configuración Avanzada
-"Not available (Not offered this semester)","No disponible (No ofertada este semestre)"
-"We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning.","Estimamos que una actividad promedio requiere unas dos semanas de dedicación (15 días). Ajusta este valor según tu planificación personal."
-"Subjects","Asignaturas"
-"Not available (Minimum %s ECTS required)","No disponible (Mínimo %s ECTS requeridos)"
-"Not available (You have already passed %s)","No disponible (Ya has superado %s)"
-and,y
+en;es
+Language;Idioma
+Change language;Cambia de idioma
+Welcome to the enrollment recommendation tool Visual Enrollment;Bienvenido a la herramienta de recomendación de matricula Visual Enrollment
+Use your UOC user and password to access with your academic record;Utiliza tu usuario y contraseña de la UOC para acceder con tu expediente académico
+Login;Iniciar sesión
+User;Usuario
+Password;Contraseña
+Enter without my academic report;Entrar sin mi expediente
+About Visual Enrollment;Sobre Visual Enrollment
+Back;Volver
+Previous;Anterior
+Choose degree;Elige grado
+Computer science degree;Grado de informatica
+Applied data science;Ciencias de datos aplicadas
+Choose a semester:;Elige un semestre:
+Choose a student:;Elige un estudiante:
+Importance of semi-annual organization:;Importancia de la organitzación semestral:
+Max radius for bubbles:;Radio máximo para las burbujas:
+Configuration;Configuración
+Assign a value to the topics based on their importance:;Asigna un valor a los siguientes criterios para separar en el mapa las asignaturas que no deberían matricularse juntas según tus preferencias.
+Difficulty:;Dificultad:
+Not relevant;No es relevante
+Separate the most difficult subjects;Separa asignaturas que al matricularse juntas se suspenden más a menudo
+Popularity:;Popularidad:
+Separate subjects that are never enrolled together;Separa asignaturas que casi nunca se matriculan juntas
+Previous requirements:;Requisitos previos:
+Separate subjects that are taken in different semesters;Separa asignaturas que se han de cursar en distintos semestres
+Overlaps between deadlines:;Solapamientos entre entregas:
+Separate the subjects that have more overlapping deadlines;Separa asignaturas que tienen más actividades solapadas
+Get recommendation of subjects to enroll;Muestra el ranking de asignaturas recomendadas para tu matrícula
+Recommend;Recomienda asignaturas
+Here's your academic status. Mark subjects as validated or discarded (it is optional);Hemos cargado tu expediente académico. Selecciona las asignaturas que piensas convalidar o quieres descartar (este paso es opcional). Cuando las hayas seleccionado, puedes hacer clic en siguiente.
+The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.;El sistema te ha recomendado en tonos de verde las asignaturas más adecuadas a matricular según tus preferencias.
+On the map, select the subjects that you want to enroll in.;Selecciona en el mapa las asignaturas que quieras matricular.
+Discover the workload of the selected subjects. Deadline dates and activities are approximate.;Descubre la carga de trabajo de las asignaturas selecionadas. Las fechas de entrega y las actividades son aproximadas.
+Restart again;Volver a empezar
+Download;Descargar
+Information;Información
+If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>.;Si quieres cursar más de 36 créditos, primero debes <a href='https://campus.uoc.edu/estudiant/tramits/es/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>solicitar una autorización</a>.
+Total number of activities;Nº total de actividades
+Average daily activities;Nº de días con actividades
+Percentage of overlapping (days with more than 1 activity);Porcentaje de solapamiento (días con más de una actividad)
+No. of days until deadline;Nº de días hasta la entrega
+The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.;El sistema ha marcado en tonos de verde el ranking de las asignaturas más recomendadas para tu matrícula.
+Subject status;Estado de la asignatura
+Pending;Sin cursar
+Pass;Superada
+Fail;No superada
+Transfer;Convalidada
+Selected;Seleccionada
+An Excel file with the selected subjects will be downloaded.;Se descargará un archivo Excel con las asignaturas seleccionadas.
+Subjects:;Asignaturas:
+Day of the semester;Día del semestre
+Number of concurrent activities;Número de actividades concurrentes
+Continue;Siguiente
+Not available;No disponible
+Choose recommender:;Elige recomendador:
+Random;Aleatorio
+Distance;Distancia
+Distance adjustment for failed or non-submitted subjects:;Ajuste de distancia para asignaturas suspedidas o no presentadas:
+Deadline dates and activities are approximate.;Las fechas de entrega y las actividades son aproximadas.
+TFM:;TFM (Ex: 05.616):
+Academic record;Tu expediente
+Discard;Descartes
+Discarded;Descartada
+Preferences;Preferencias
+Recommendations;Recomendaciones
+Selection;Selección
+Less important;Menos importante
+More important;Más importante
+If you need it, you can highlight the subjects according to their typology.;Si lo necesitas, puedes destacar las asignaturas según su tipología.
+Highlight each type of subject;Destaca un tipo de asignatura
+All;Todas
+You can also search them.;También puedes buscarlas.
+Search subject;Buscar asignatura
+Calculate the workload of the selected subjects.;Calcula la carga de trabajo de las asignaturas selecionadas.
+You can specify the number of days you think you are going to dedicate to each activity:;Si quieres, puedes especificar el nº de días que crees que vas a dedicar a cada actividad:
+When you have selected the most suitable combination of subjects, you can download your enrollment configuration.;Cuando hayas seleccionado la combinación de asignaturas más adecuadas puedes descargar tu configuración de matrícula.
+Download enrolment;Descargar matrícula
+Graded Activity Calendar;Calendario de entrega de actividades evaluables
+Subject recommender;Recomendador de assignatures
+Map of subjects;Mapa de asignaturas
+¡Gracias por utilizar Visual Enrollment!;¡Gracias por utilizar Visual Enrollment!
+Índice de idoinedad de matricula;Índice de idoinedad de matricula
+Tus preferencias y selección para la siguiente matricula;Tus preferencias y selección para la siguiente matricula
+Subject;Asignatura
+Semester;Semestre
+Order;Orden
+Mark;Nota
+With Honors;Matrícula de Honor
+Excellent;Excelente
+Good;Notable
+Satisfactory;Aprobado
+Withdrawal;No Presentado
+Recommendation;Recomendación
+Recommendations & selection;Recomendaciones y selección
+Prerequisites:;Prerrequisitos:
+None;Ninguno
+Status:;Estado:
+Type:;Tipo:
+Have completed at least;Haber superado como mínimo
+Desired ECTS for Enrollment:;ECTS deseados para la matrícula:
+Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.;Selecciona los ECTS a matricular. Normalmente 1 asignatura = 6 ECTS, excepto prácticas o TFG.
+Choose Itinerary:;Elige Itinerario:
+Computer Engineering;Ingeniería de computadores
+Software Engineering;Ingeniería del software
+Computing;Computación
+Information Systems;Sistemas de información
+Information Technology;Tecnologías de la información
+Not Sure;No estoy seguro
+Itinerary:;Itinerario:
+Elective;Optativa
+Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet.;Seleccionar un itinerario priorizará la recomendación de asignaturas de esa rama. Elige 'No estoy seguro' si aún no te has decidido.
+Main Settings;Configuración Principal
+Advanced Settings;Configuración Avanzada
+Not available (Not offered this semester);No disponible (No ofertada este semestre)
+We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning.;Estimamos que una actividad promedio requiere unas dos semanas de dedicación (15 días). Ajusta este valor según tu planificación personal.
+Subjects;Asignaturas
+Not available (Minimum %s ECTS required);No disponible (Mínimo %s ECTS requeridos)
+Not available (You have already passed %s);No disponible (Ya has superado %s)
+and;y

@@ -1,11 +1,11 @@
-type,path,tipologia_en,tipologia_ca,tipologia_es
-B,0,Basic,Bàsica,Básica
-O,0,Mandatory,Obligatòria,Obligatoria
-T,0,Mandatory,Obligatòria,Obligatoria
-C,0,Complement,Complement,Complemento
-P,0,Elective,Optativa,Optativa
-P,1,Hardware (Elec.),Maquinari (Opt.),Hardware (Opt.)
-P,2,Software (Elec.),Programari (Opt.),Software (Opt.)
-P,3,Computation (Elec.),Computació (Opt.),Computación (Opt.)
-P,4,Information Systems (Elec.),Sistemes d'Informació (Opt.),Sistemas de Información(Opt.)
-P,5,Information Technologies (Elec.),Tecnologies de la Informació (Opt.),Tecnologías de la Información (Opt.)
+type;path;tipologia_en;tipologia_ca;tipologia_es
+B;0;Basic;Bàsica;Básica
+O;0;Mandatory;Obligatòria;Obligatoria
+T;0;Mandatory;Obligatòria;Obligatoria
+C;0;Complement;Complement;Complemento
+P;0;Elective;Optativa;Optativa
+P;1;Hardware (Elec.);Maquinari (Opt.);Hardware (Opt.)
+P;2;Software (Elec.);Programari (Opt.);Software (Opt.)
+P;3;Computation (Elec.);Computació (Opt.);Computación (Opt.)
+P;4;Information Systems (Elec.);Sistemes d'Informació (Opt.);Sistemas de Información(Opt.)
+P;5;Information Technologies (Elec.);Tecnologies de la Informació (Opt.);Tecnologías de la Información (Opt.)

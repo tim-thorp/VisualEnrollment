@@ -439,7 +439,7 @@ subjectEnrollmentServer <- function(id, language) {
 
                 # Only show itinerary info for Optional subjects (Type P)
                 if (subject_type == "P" && subject_path_str != "0") { # Path 0 is not an itinerary
-                    subject_paths <- unlist(str_split(subject_path_str, "_")) # Split for multiple itineraries (e.g., "1_5")
+                    subject_paths <- unlist(str_split(subject_path_str, ",")) # Split for multiple itineraries (e.g., "1,5")
                     selected_itinerary_path <- input$itinerary # User's choice ("0" means Not Sure)
 
                     itinerary_items <- lapply(subject_paths, function(path_num) {
@@ -700,7 +700,7 @@ subjectEnrollmentServer <- function(id, language) {
                   
                   # Check ANTIREQUISITE rule (only if MIN_ECTS didn't already fail)
                   if (!apply_restriction && !is.na(rule$antirequisites)) { # Use !apply_restriction
-                    blocking_codes_rule <- unlist(str_split(rule$antirequisites, ";"))
+                    blocking_codes_rule <- unlist(str_split(rule$antirequisites, ","))
                     # Filter out empty strings that might result from splitting
                     blocking_codes_rule <- blocking_codes_rule[blocking_codes_rule != ""]
                     # Find which of these the student has actually passed
@@ -1640,7 +1640,7 @@ subjectEnrollmentServer <- function(id, language) {
                     
                     # Check ANTIREQUISITE rule (only if MIN_ECTS didn't already fail)
                     if (meets_all_restrictions && !is.na(rule$antirequisites)) { # Check meets_all_restrictions instead of !apply_restriction
-                      blocking_codes_rule <- unlist(str_split(rule$antirequisites, ";"))
+                      blocking_codes_rule <- unlist(str_split(rule$antirequisites, ","))
                       # Filter out empty strings that might result from splitting
                       blocking_codes_rule <- blocking_codes_rule[blocking_codes_rule != ""]
                       # Find which of these the student has actually passed

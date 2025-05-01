@@ -19,7 +19,7 @@ ass;asem;bsem;type;path;name;abrv;credits
 05.571;5;0;O;0;Gestión de Proyectos;GdP;6
 05.572;5;0;O;0;Redes y Aplicaciones Internet;RyAI;6
 05.573;3;0;O;0;Estructura de Computadores;EdC;6
-05.574;6;2;P;1_5;Seguridad de Redes de Computadores;SdRdC;6
+05.574;6;2;P;1,5;Seguridad de Redes de Computadores;SdRdC;6
 05.575;5;0;O;0;Administración de Redes y Sistemas Operativos;AdRySO;6
 05.576;6;2;P;5;Diseño de Redes de Computadores;DdRdC;6
 05.577;6;1;P;1;Diseño de Sistemas Operativos;DdSO;6
@@ -41,8 +41,8 @@ ass;asem;bsem;type;path;name;abrv;credits
 05.593;6;1;P;2;Ingeniería de Requisitos;IdR;6
 05.594;6;1;P;1;Sistemas Empotrados;SE;6
 05.595;6;1;P;4;Iniciativa Emprendedora;IE;6
-05.596;6;1;P;4_5;Fundamentos de Sistemas de Información;FdSI;6
-05.597;6;2;P;4_5;Integración de Sistemas de Información;IdSI;6
+05.596;6;1;P;4,5;Fundamentos de Sistemas de Información;FdSI;6
+05.597;6;2;P;4,5;Integración de Sistemas de Información;IdSI;6
 05.598;6;2;P;4;Uso de Sistemas de Información en las Organizaciones;UdSIeO;6
 05.599;6;2;P;4;Gestión Funcional de Servicios de SI/TI;GFdSdSI;6
 05.600;6;1;P;4;Planificación y Uso Estratégico de SI;PyUEdSI;6
@@ -50,7 +50,7 @@ ass;asem;bsem;type;path;name;abrv;credits
 05.604;6;1;P;5;Comercio Electrónico;CE;6
 05.607;6;1;P;5;Arquitectura de Bases de Datos;AdBD;6
 05.611;4;0;B;0;Fundamentos Físicos de la Informática;FFdI;6
-05.613;6;1;P;2_3;Diseño de Estructuras de Datos;DdED;6
+05.613;6;1;P;2,3;Diseño de Estructuras de Datos;DdED;6
 05.614;0;0;C;0;Iniciación a las Matemáticas para la Ingeniería;IMpI;6
 05.615;6;0;P;0;Prácticas en Empresa;PeE;12
 05.616;8;0;T;0;Trabajo Final de Grado;TFG;12

@@ -1,122 +1,122 @@
-en,ca
-Language,Idioma
-Change language,Canvia d'idioma
-Welcome to the enrollment recommendation tool Visual Enrollment,Et donem la benvinguda a l'eina de recomanació de matricula Visual Enrollment
-Use your UOC user and password to access with your academic record,Utilitza el teu usuari i contrasenya de la UOC per accedir amb el teu expedient acadèmic
-Login,Inicia sessió
-User,Usuari
-Password,Contrasenya
-Enter without my academic report,Entrar sense el meu expedient
-About Visual Enrollment,Quant a Visual Enrollment
-Back,Tornar
-Previous,Anterior
-Choose degree,Escull grau
-Computer science degree,Grau d'informàtica
-Applied data science,Ciències de dades aplicades
-Choose a semester:,Escull un semestre:
-Choose a student:,Escull un estudiant:
-Importance of semi-annual organization:,Importància de la organització semestral:
-Max radius for bubbles:,Radi màxim per les bombolles:
-Configuration,Configuració
-Assign a value to the topics based on their importance:,Assigna un valor als següents criteris per a separar en el mapa les assignatures que no haurien de matricular-se juntes segons les teves preferències.
-Difficulty:,Dificultat:
-Not relevant,No és rellevant
-Separate the most difficult subjects,Separa assignatures que en matricular-se juntes se suspenen més sovint
-Popularity:,Popularitat:
-Separate subjects that are never enrolled together,Separa assignatures que gairebé mai es matriculen juntes
-Previous requirements:,Requisits previs:
-Separate subjects that are taken in different semesters,Separa assignatures que s'han de cursar en diferents semestres
-Overlaps between deadlines:,Solapaments entre lliuraments:
-Separate the subjects that have more overlapping deadlines,Separa assignatures que tenen més activitats solapades
-Get recommendation of subjects to enroll,Mostra el ranking d'assignatures recomanades per la teva matricula
-Recommend,Recomana assignatures
-"Here's your academic status. Mark subjects as validated or discarded (it is optional)","Hem carregat el teu expedient acadèmic. Selecciona les assignatures que penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent."
-The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.,El sistema t'ha recomanat en tons de verd les assignatures més adequades a matricular segons les teves preferències.
-"On the map, select the subjects that you want to enroll in.",Selecciona en el mapa les assignatures que vulguis matricular.
-Discover the workload of the selected subjects. Deadline dates and activities are approximate.,Descobreix la càrrega de treball de les assignatures selecionadas. Les dates de lliurament són aproximades.
-Restart again,Torna a començar
-Download,Descarrega
-Information,Informació
-"If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>.","Si vols cursar més de 36 crèdits, primer has de <a href='https://campus.uoc.edu/estudiant/tramits/ca/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>sol·licitar una autorització</a>."
-Total number of activities,Núm. total d'activitats
-Average daily activities,Núm. de dies amb activitats
-Percentage of overlapping (days with more than 1 activity),Percentatge de solapament (dies amb més d'una activitat)
-No. of days until deadline,Núm. de dies fins al lliurament
-The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.,El sistema ha marcat en tons de verd el ranking de les assignatures més recomendades per a la teva matricula.
-Subject status,Estat de l'assignatura
-Pending,Sense cursar
-Pass,Superada
-Fail,No superada
-Transfer,Convalidada
-Selected,Seleccionada
-An Excel file with the selected subjects will be downloaded.,Es descargarà un fitxer Excel amb les assignatures seleccionades.
-Subjects:,Assignatures:
-Day of the semester,Dia del semestre
-Number of concurrent activities,Número d'activitats concurrents
-Continue,Següent
-Not available,No disponible
-Choose recommender:,Escull recomendador:
-Random,Aleatori
-Distance,Distancia
-Distance adjustment for failed or non-submitted subjects:,Ajustament de distància per assignatures suspeses o no presentades:
-Deadline dates and activities are approximate.,Les dates de lliurament i les activitats són aproximades.
-TFM:,TFM (Ex: 05.616):
-Academic record,El teu expedient
-Discard,Descartes
-Discarded,Descartada
-Preferences,Preferències
-Recommendations,Recomanacions
-Selection,Selecció
-Less important,Menys important
-More important,Més important
-"If you need it, you can highlight the subjects according to their typology.","Si ho necessites, pots destacar les assignatures segons la seva tipologia."
-Highlight each type of subject,Destaca un tipus d'assignatura
-All,Totes
-You can also search them.,També pots buscar-les.
-Search subject,Buscar assignatura
-Calculate the workload of the selected subjects.,Calcula la càrrega de treball de les assignatures selecionades.
-"You can specify the number of days you think you are going to dedicate to each activity:","Si vols, pots especificar el núm. de dies que creïs que dedicaràs a cada activitat:"
-"When you have selected the most suitable combination of subjects, you can download your enrollment configuration.",Quan hagis seleccionat la combinació d'assignatures més adequades pots descarregar la teva configuració de matrícula.
-Download enrolment,Descarregar matrícula
-Graded Activity Calendar,Calendari d'entrega d'activitats avaluables
-Subject recommender,Recomanador d'assignatures
-Map of subjects,Mapa d'asignatures
-¡Gracias por utilizar Visual Enrollment!,Gràcies per utilitzar Visual Enrollment!
-Índice de idoinedad de matricula,Índex de idoneïtat de matrícula
-Tus preferencias y selección para la siguiente matricula,Les teves preferències i selecció per la següent matrícula
-Subject,Assignatura
-Semester,Semestre
-Order,Ordre
-Mark,Nota
-With Honors,Matrícula d'Honor
-Excellent,Excel·lent
-Good,Notable
-Satisfactory,Aprovat
-Withdrawal,No Presentat
-Recommendation,"Recomanació"
-Recommendations & selection,"Recomanacions i selecció"
-Prerequisites:,"Prerequisits:"
-None,"Cap"
-Status:,"Estat:"
-Type:,"Tipus:"
-Have completed at least,"Haver superat com a mínim"
-Desired ECTS for Enrollment:,"ECTS desitjats per a la matrícula:"
-"Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.","Selecciona els ECTS a matricular. Normalment 1 assignatura = 6 ECTS, excepte pràctiques o TFG."
-Choose Itinerary:,Escull Itinerari:
-Computer Engineering,Enginyeria de computadors
-Software Engineering,Enginyeria del programari
-Computing,Computació
-Information Systems,Sistemes d'informació
-Information Technology,Tecnologies de la informació
-Not Sure,No estic segur
-Itinerary:,Itinerari:
-Elective,Optativa
-"Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet.","Seleccionar un itinerari prioritzarà la recomanació d'assignatures d'aquella branca. Tria 'No estic segur' si encara no t'has decidit."
-Main Settings,Configuració Principal
-Advanced Settings,Configuració Avançada
-"Not available (Not offered this semester)","No disponible (No ofertada aquest semestre)"
-"We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning.","Estimem que una activitat mitjana requereix unes dues setmanes de dedicació (15 dies). Ajusta aquest valor segons la teva planificació personal."
-"Subjects","Assignatures"
-"Not available (Minimum %s ECTS required)","No disponible (Mínim %s ECTS requerits)"
-"Not available (You have already passed %s)","No disponible (Ja has superat %s)"
-and,i
+en;ca
+Language;Idioma
+Change language;Canvia d'idioma
+Welcome to the enrollment recommendation tool Visual Enrollment;Et donem la benvinguda a l'eina de recomanació de matricula Visual Enrollment
+Use your UOC user and password to access with your academic record;Utilitza el teu usuari i contrasenya de la UOC per accedir amb el teu expedient acadèmic
+Login;Inicia sessió
+User;Usuari
+Password;Contrasenya
+Enter without my academic report;Entrar sense el meu expedient
+About Visual Enrollment;Quant a Visual Enrollment
+Back;Tornar
+Previous;Anterior
+Choose degree;Escull grau
+Computer science degree;Grau d'informàtica
+Applied data science;Ciències de dades aplicades
+Choose a semester:;Escull un semestre:
+Choose a student:;Escull un estudiant:
+Importance of semi-annual organization:;Importància de la organització semestral:
+Max radius for bubbles:;Radi màxim per les bombolles:
+Configuration;Configuració
+Assign a value to the topics based on their importance:;Assigna un valor als següents criteris per a separar en el mapa les assignatures que no haurien de matricular-se juntes segons les teves preferències.
+Difficulty:;Dificultat:
+Not relevant;No és rellevant
+Separate the most difficult subjects;Separa assignatures que en matricular-se juntes se suspenen més sovint
+Popularity:;Popularitat:
+Separate subjects that are never enrolled together;Separa assignatures que gairebé mai es matriculen juntes
+Previous requirements:;Requisits previs:
+Separate subjects that are taken in different semesters;Separa assignatures que s'han de cursar en diferents semestres
+Overlaps between deadlines:;Solapaments entre lliuraments:
+Separate the subjects that have more overlapping deadlines;Separa assignatures que tenen més activitats solapades
+Get recommendation of subjects to enroll;Mostra el ranking d'assignatures recomanades per la teva matricula
+Recommend;Recomana assignatures
+Here's your academic status. Mark subjects as validated or discarded (it is optional);Hem carregat el teu expedient acadèmic. Selecciona les assignatures que penses convalidar, o que no vols fer (aquest pas és opcional). Quan les hagis seleccionat, pots fer clic en següent.
+The system has recommended in shades of green the most appropriate subjects to enroll according to your preferences.;El sistema t'ha recomanat en tons de verd les assignatures més adequades a matricular segons les teves preferències.
+On the map, select the subjects that you want to enroll in.;Selecciona en el mapa les assignatures que vulguis matricular.
+Discover the workload of the selected subjects. Deadline dates and activities are approximate.;Descobreix la càrrega de treball de les assignatures selecionades. Les dates de lliurament són aproximades.
+Restart again;Torna a començar
+Download;Descarrega
+Information;Informació
+If you want to enroll in more than 36 credits, you must first <a href='https://campus.uoc.edu/estudiant/tramits/en/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>request authorization</a>.;Si vols cursar més de 36 crèdits, primer has de <a href='https://campus.uoc.edu/estudiant/tramits/ca/altres_tramits/autoritzacions/index.html?s=80b162a0322bf2949627660ed48acf10d0f6c1c4d4b5e7a4acbba088bc106c22c25bd1e0332d0a8365dff9701d20fbf1de48672a2d48f63d242e5353a2cb34cd' target='_blank'>sol·licitar una autorització</a>.
+Total number of activities;Núm. total d'activitats
+Average daily activities;Núm. de dies amb activitats
+Percentage of overlapping (days with more than 1 activity);Percentatge de solapament (dies amb més d'una activitat)
+No. of days until deadline;Núm. de dies fins al lliurament
+The system has marked in shades of green the ranking of the most recommended subjects for your enrollment.;El sistema ha marcat en tons de verd el ranking de les assignatures més recomanades per a la teva matricula.
+Subject status;Estat de l'assignatura
+Pending;Sense cursar
+Pass;Superada
+Fail;No superada
+Transfer;Convalidada
+Selected;Seleccionada
+An Excel file with the selected subjects will be downloaded.;Es descarregarà un fitxer Excel amb les assignatures seleccionades.
+Subjects:;Assignatures:
+Day of the semester;Dia del semestre
+Number of concurrent activities;Número d'activitats concurrents
+Continue;Següent
+Not available;No disponible
+Choose recommender:;Escull recomendador:
+Random;Aleatori
+Distance;Distancia
+Distance adjustment for failed or non-submitted subjects:;Ajustament de distància per assignatures suspeses o no presentades:
+Deadline dates and activities are approximate.;Les dates de lliurament i les activitats són aproximades.
+TFM:;TFM (Ex: 05.616):
+Academic record;El teu expedient
+Discard;Descartes
+Discarded;Descartada
+Preferences;Preferències
+Recommendations;Recomanacions
+Selection;Selecció
+Less important;Menys important
+More important;Més important
+If you need it, you can highlight the subjects according to their typology.;Si ho necessites, pots destacar les assignatures segons la seva tipologia.
+Highlight each type of subject;Destaca un tipus d'assignatura
+All;Totes
+You can also search them.;També pots buscar-les.
+Search subject;Buscar assignatura
+Calculate the workload of the selected subjects.;Calcula la càrrega de treball de les assignatures selecionades.
+You can specify the number of days you think you are going to dedicate to each activity:;Si vols, pots especificar el núm. de dies que creïs que dedicaràs a cada activitat:
+When you have selected the most suitable combination of subjects, you can download your enrollment configuration.;Quan hagis seleccionat la combinació d'assignatures més adequades pots descarregar la teva configuració de matrícula.
+Download enrolment;Descarregar matrícula
+Graded Activity Calendar;Calendari d'entrega d'activitats avaluables
+Subject recommender;Recomanador d'assignatures
+Map of subjects;Mapa d'asignatures
+¡Gracias por utilizar Visual Enrollment!;Gràcies per utilitzar Visual Enrollment!
+Índice de idoinedad de matricula;Índex de idoneïtat de matrícula
+Tus preferencias y selección para la siguiente matricula;Les teves preferències i selecció per la següent matrícula
+Subject;Assignatura
+Semester;Semestre
+Order;Ordre
+Mark;Nota
+With Honors;Matrícula d'Honor
+Excellent;Excel·lent
+Good;Notable
+Satisfactory;Aprovat
+Withdrawal;No Presentat
+Recommendation;Recomanació
+Recommendations & selection;Recomanacions i selecció
+Prerequisites:;Prerequisits:
+None;Cap
+Status:;Estat:
+Type:;Tipus:
+Have completed at least;Haver superat com a mínim
+Desired ECTS for Enrollment:;ECTS desitjats per a la matrícula:
+Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.;Selecciona els ECTS a matricular. Normalment 1 assignatura = 6 ECTS, excepte pràctiques o TFG.
+Choose Itinerary:;Escull Itinerari:
+Computer Engineering;Enginyeria de computadors
+Software Engineering;Enginyeria del programari
+Computing;Computació
+Information Systems;Sistemes d'informació
+Information Technology;Tecnologies de la informació
+Not Sure;No estic segur
+Itinerary:;Itinerari:
+Elective;Optativa
+Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet.;Seleccionar un itinerari prioritzarà la recomanació d'assignatures d'aquella branca. Tria 'No estic segur' si encara no t'has decidit.
+Main Settings;Configuració Principal
+Advanced Settings;Configuració Avançada
+Not available (Not offered this semester);No disponible (No ofertada aquest semestre)
+We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning.;Estimem que una activitat mitjana requereix unes dues setmanes de dedicació (15 dies). Ajusta aquest valor segons la teva planificació personal.
+Subjects;Assignatures
+Not available (Minimum %s ECTS required);No disponible (Mínim %s ECTS requerits)
+Not available (You have already passed %s);No disponible (Ja has superat %s)
+and;i
