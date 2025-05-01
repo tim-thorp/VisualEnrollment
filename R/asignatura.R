@@ -72,11 +72,20 @@ filter_subjects_by_type <- function(language, degree_data, subjects_df, input) {
 search_subjects <- function(language, degree_data, subjects_df, input) {
   subjects_data_df <- degree_data$subjects_data
   name_col_search <- paste0("name_", language)
-  selected_subjects <- subjects_data_df %>%
-    filter(str_detect(.data[[name_col_search]], input$search_subject)) %>%
+  search_term <- input$search_subject
+  
+  # Ensure search term is not NULL or empty before proceeding
+  if(is.null(search_term) || str_trim(search_term) == "") {
+    return(subjects_df) 
+  }
+  
+  selected_subjects_codes <- subjects_data_df %>%
+    # Case-insensitive search using tolower()
+    filter(str_detect(tolower(.data[[name_col_search]]), fixed(tolower(search_term)))) %>%
     pull(subject_code)
+    
   subjects_df <- subjects_df %>%
-    mutate(selected_subjects = subject_code %in% selected_subjects)
+    mutate(selected_subjects = subject_code %in% selected_subjects_codes)
   return(subjects_df)
 }
 

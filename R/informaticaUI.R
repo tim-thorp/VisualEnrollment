@@ -150,8 +150,6 @@ subjectEnrollmentUI <- function(id, language) {
               h4(translate(language, 
                 "On the map, select the subjects that you want to enroll in."
               )),
-              uiOutput(namespace("uiTipologia")),
-              uiOutput(namespace("search_subject")),
               actionButton(
                 namespace("previous2"),
                 translate(language, "Previous")
@@ -169,19 +167,18 @@ subjectEnrollmentUI <- function(id, language) {
              translate(language, "Subject recommender"), 
              fluent_grid(
               fluent_grid_item(
-                class = "steps step0",
-                tags$ol(
-                  tags$li(class="step0", translate(language, "Discard")),
-                  tags$li(class="step1", translate(language, "Preferences")),
-                  tags$li(class="step2", translate(language, "Recommendations")),
-                  tags$li(class="step3", translate(language, "Selection"))
-                )
-              ),
-              fluent_grid_item(
                 # Use columns for layout: 8 for plot, 4 for legend
-                class = "ms-Grid-col ms-sm12 ms-md12 ms-lg8", 
-                # JULIA 23/12/2022 cambiar h2 por h4
-                h4(translate(language, "Map of subjects")),
+                class = "ms-Grid-col ms-sm12 ms-md12 ms-lg8",
+                # Step indicators
+                tags$div(
+                  class = "steps step0",
+                  tags$ol(
+                    tags$li(class="step0", translate(language, "Discard")),
+                    tags$li(class="step1", translate(language, "Preferences")),
+                    tags$li(class="step2", translate(language, "Recommendations")),
+                    tags$li(class="step3", translate(language, "Selection"))
+                  )
+                ),
                 div(
                   class = "graf",
                   tagList( 
@@ -215,9 +212,10 @@ subjectEnrollmentUI <- function(id, language) {
               fluent_grid_item(
                 # Use columns for layout: 4 for legend
                 class = "ms-Grid-col ms-sm12 ms-md12 ms-lg4",
-                # Add padding to align vertically with the map title/plot
-                style = "padding-top: 58px;",
                 # Add the custom HTML legend
+                uiOutput(namespace("uiSubjectType")),
+                uiOutput(namespace("search_subject_input")),
+                textOutput(namespace("search_results_message")),
                 uiOutput(namespace("uiLegend"))
               )
              )

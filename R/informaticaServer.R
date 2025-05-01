@@ -17,6 +17,7 @@ subjectEnrollmentServer <- function(id, language) {
       discarded_list <- reactiveValues(subject_code=character())
       recommended_list <- reactiveValues(subject_code=character())
       selected_list <- reactiveValues(subject_code=character())
+      search_had_results <- reactiveVal(TRUE)
       
       static_legend_labels_base <- c(
         "Pass", "Transfer", "Fail", "Not available", "Discarded", "Pending", 
@@ -826,31 +827,37 @@ subjectEnrollmentServer <- function(id, language) {
               # color de l'àrea en funció de l'indicador
             }
             
-            # afegir les assignatures
-            subject_coordinates$selected_subjects=1
-            if (!is.null(input$subject_type)) {
-              subject_coordinates <- filter_subjects_by_type(language, degree_data, subject_coordinates, input)
-            }
-            if (!is.null(input$search_subject) && str_length(input$search_subject) > 0) {
+            subject_coordinates$selected_subjects=0 # Initialize to 0 (grey)
+
+            # Determine filter/search states
+            is_search_active <- !is.null(input$search_subject) && str_length(str_trim(input$search_subject)) > 0
+            is_type_filter_active <- !is.null(input$subject_type) && input$subject_type != translate(language, "All")
+            
+            if (is_search_active) {
+              # Apply search filter (takes precedence)
               subject_coordinates <- search_subjects(language, degree_data, subject_coordinates, input)
+              # Update search status reactive value
+              search_had_results(any(subject_coordinates$selected_subjects == 1))
+            } else if (is_type_filter_active) {
+              # Apply type filter (only if search is inactive)
+              subject_coordinates <- filter_subjects_by_type(language, degree_data, subject_coordinates, input)
+              search_had_results(TRUE) # Reset status when not searching
+            } else {
+              # No search, Type is "All" -> Make all subjects selected (black)
+              subject_coordinates$selected_subjects = 1 
+              search_had_results(TRUE) # Reset status when not searching
             }
-            
-            # JULIA 20/12/2022 forzar que aparezcan todas las asignaturas
-            # cuando se seleccionan las asignaturas a matricular no se
-            # muestran los "centros" de las recomendadas, pero solo si la
-            # selección de nombre de asignatura está vacía
-            if (!is.null(input$subject_type) & is.null(input$search_subject)) {
-              if (input$subject_type==translate(language, "All")) {
-                subject_coordinates$selected_subjects=1
-              }
-            }
-            
-            filtered_subject_coordinates = subject_coordinates[subject_coordinates$subject_mark==translate(language, "Pending") | subject_coordinates$selected_subjects==1,]
+
+            # Always use all coordinates for labelling
+            label_data <- subject_coordinates
+
             # JULIA 07/01/2023 cambiar a 1 columna en vertical
             subject_plot <- subject_plot +
               # Centered text for all subjects
-              geom_text(data = filtered_subject_coordinates, 
-                      aes(alpha=ifelse(selected_subjects==1,1,0.72)), size=5, colour=colorT, hjust=0.5, vjust=0.5)
+              geom_text(data = label_data, 
+                      # Alpha: 1 (black) if selected_subjects=1 (matches filter/search or 'All'), 0.5 (lighter grey) otherwise.
+                      aes(alpha = ifelse(selected_subjects == 1, 1, 0.5), label=subject_abbreviation), 
+                      size=5, colour=colorT, hjust=0.5, vjust=0.5, show.legend = FALSE)
             
             # guardamos el mapa para hover, etc.
             #print("save qQ")
@@ -863,6 +870,18 @@ subjectEnrollmentServer <- function(id, language) {
         
       }, height=600)
       
+      # --- Render search results message ---
+      output$search_results_message <- renderText({
+        req(input$search_subject) # Require search input to exist
+        is_search_active <- !is.null(input$search_subject) && str_length(str_trim(input$search_subject)) > 0
+        
+        if (is_search_active && !search_had_results()) {
+           translate(language, "No matching subjects found.")
+        } else {
+          "" # Return empty string if search is inactive or has results
+        }
+      })
+      # ------------------------------------
       
       # Custom legend using HTML
       output$uiLegend <- renderUI({
@@ -1277,7 +1296,7 @@ subjectEnrollmentServer <- function(id, language) {
         )
       })
       
-      output$uiSearchSubject=renderUI({
+      output$search_subject_input=renderUI({
         req(input$degree)
         ns <- session$ns
         degree_data = degree_data()
@@ -1816,8 +1835,21 @@ subjectEnrollmentServer <- function(id, language) {
       })
       
       observeEvent(input$subject_type, {
-        updateTextInput(session, "search_subject", value = "")
+        # If the newly selected type is NOT 'All', clear the search box.
+        if (!is.null(input$subject_type) && input$subject_type != translate(language, "All")) {
+          updateTextInput(session, "search_subject", value = "") # Removed ns()
+        }
       })
+      
+      # --- Observe search input to reset type dropdown ---
+      observeEvent(input$search_subject, {
+        # Only reset if search box is not empty
+        if (!is.null(input$search_subject) && str_trim(input$search_subject) != "") {
+          updateSelectInput(session, "subject_type", 
+                          selected = translate(language, "All"))
+        }
+      }, ignoreNULL = FALSE, ignoreInit = TRUE) # ignoreNULL=FALSE ensures reset even if starts non-null
+      # -----------------------------------------------------
       
       # Reset enrollment process when student changes
       observeEvent(input$idp, {
