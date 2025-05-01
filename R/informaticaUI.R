@@ -162,6 +162,7 @@ subjectEnrollmentUI <- function(id, language) {
         ),
         fluent_main( #  fluent_main mainPanel
          tabsetPanel(
+           id=namespace("main_tabs"),
            type="tabs", 
            selected=translate(language, "Configuration"),
            tabPanel(

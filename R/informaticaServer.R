@@ -1379,12 +1379,6 @@ subjectEnrollmentServer <- function(id, language) {
           if(matriculable){
             enrollment_step$current_step <- 3
             session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
-            session$sendCustomMessage(type = "show", message = ".widgets_cal")
-            session$sendCustomMessage(type = "show", message = ".workload_asignatures")
-            session$sendCustomMessage(type = "show", message = ".download_asignatures")
-            session$sendCustomMessage(type = "show", message = ".cal_asignatures")
-            # Show the scroll actionLink using shinyjs
-            shinyjs::show("scroll_to_cal_container")
             if(length(selected_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% selected_list$subject_code) {
               selected_list$subject_code <- selected_list$subject_code[ !selected_list$subject_code %in% clicked_list$subject_code[[1]] ]
             } else {
@@ -1880,6 +1874,34 @@ subjectEnrollmentServer <- function(id, language) {
         shinyscreenshot::screenshot(filename = "visualenrollment")
       })
       
+      # --- Helper function to manage calendar visibility ---
+      toggle_calendar_visibility <- function(show) {
+        if (show) {
+          shinyjs::show("scroll_to_cal_container")
+          session$sendCustomMessage(type = "show", message = ".widgets_cal")
+          session$sendCustomMessage(type = "show", message = ".workload_asignatures")
+          session$sendCustomMessage(type = "show", message = ".download_asignatures")
+          session$sendCustomMessage(type = "show", message = ".cal_asignatures")
+        } else {
+          shinyjs::hide("scroll_to_cal_container")
+          session$sendCustomMessage(type = "hide", message = ".widgets_cal")
+          session$sendCustomMessage(type = "hide", message = ".workload_asignatures")
+          session$sendCustomMessage(type = "hide", message = ".download_asignatures")
+          session$sendCustomMessage(type = "hide", message = ".cal_asignatures")
+        }
+      }
+      # --- End Helper function ---
+
+      # --- Observe changes in step or tab to control calendar visibility ---
+      observe({
+        req(enrollment_step$current_step, input$main_tabs)
+        is_recommender_tab_active <- input$main_tabs == translate(language, "Subject recommender")
+        # Only show on step 3 AND when recommender tab is active
+        should_show <- enrollment_step$current_step == 3 && is_recommender_tab_active
+        toggle_calendar_visibility(should_show)
+      })
+      # --------------------------------------------------------------------
+
     }
   )
 }
