@@ -70,10 +70,10 @@ filter_subjects_by_type <- function(language, degree_data, subjects_df, input) {
 }
 
 search_subjects <- function(language, degree_data, subjects_df, input) {
-  subject_names_df <- degree_data$subject_names
-  selected_subjects <- subject_names_df %>% 
-    mutate(name = .[[paste0("name_", language)]]) %>% 
-    filter(str_detect(name, input$search_text)) %>% 
+  subjects_data_df <- degree_data$subjects_data
+  name_col_search <- paste0("name_", language)
+  selected_subjects <- subjects_data_df %>%
+    filter(str_detect(.data[[name_col_search]], input$search_subject)) %>%
     pull(subject_code)
   subjects_df <- subjects_df %>%
     mutate(selected_subjects = subject_code %in% selected_subjects)
@@ -81,10 +81,13 @@ search_subjects <- function(language, degree_data, subjects_df, input) {
 }
 
 get_subject_name <- function(language, degree_data, hovered) {
-  subject_name <- degree_data$subject_names %>% 
-    filter(str_detect(subject_code, paste0("^",hovered$subject_code,"$"))) %>% 
-    .[[paste0("name_", language)]]
-  return(subject_name)
+  name_col_get <- paste0("name_", language)
+  subj_details <- degree_data$subjects_data %>% filter(subject_code == hovered$subject_code)
+  if(nrow(subj_details) > 0) {
+    return(subj_details[[name_col_get]][1])
+  } else {
+    return("") # Return empty if not found
+  }
 }
 
 

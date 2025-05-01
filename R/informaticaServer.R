@@ -80,7 +80,6 @@ subjectEnrollmentServer <- function(id, language) {
             subject_type = NULL,
             student_data = NULL,
             transferred_credits = NULL, 
-            subject_names = NULL,
             subject_overlap_data = NULL,
             difficulty_distance_matrix = NULL,
             popularity_distance_matrix = NULL, 
@@ -100,10 +99,9 @@ subjectEnrollmentServer <- function(id, language) {
         transferred_credits_data <- data_files[[paste0("aeps_", selected_degree)]]
         
         subject_type <- data_files[[paste0("tipologia_", selected_degree)]]
-        subject_names <-  data_files[[paste0("noms_", selected_degree)]]
         
         # JULIA 27/12/2022 eliminar dadesASSsem
-        subjects_data = data_files[[paste0("assignatures_", input$degree)]]        
+        subjects_data = data_files[[paste0("subjects_", input$degree)]]        
         
         # Estudiants: filtrar per nombre de semestres i tope d'assignatures
         # matriculades
@@ -199,7 +197,6 @@ subjectEnrollmentServer <- function(id, language) {
           subjects_data = subjects_data,
           student_data = student_data,
           transferred_credits=transferred_credits,
-          subject_names = subject_names,
           subject_overlap_data = subject_overlap_data,
           difficulty_distance_matrix = difficulty_distance_matrix, 
           popularity_distance_matrix = popularity_distance_matrix, 
@@ -224,7 +221,9 @@ subjectEnrollmentServer <- function(id, language) {
 
         hovered_code <- hovered$subject_code
         hovered$subject_type <- get_subject_type(language, degree_data, hovered)
-        hovered$name <- get_subject_name(language, degree_data, hovered)
+        name_col_hover <- paste0("name_", language)
+        hovered_name_df <- degree_data$subjects_data %>% filter(subject_code == hovered_code)
+        hovered$name <- if(nrow(hovered_name_df) > 0) hovered_name_df[[name_col_hover]][1] else ""
 
         # --- Get Credits Info ---
         subject_credits <- degree_data$subjects_data %>%
@@ -310,29 +309,35 @@ subjectEnrollmentServer <- function(id, language) {
                        if (!is.na(reason_details)) {
                             blocking_codes <- unlist(str_split(reason_details, ";"))
                             blocking_codes <- blocking_codes[blocking_codes != ""]
-                            
-                            if (length(blocking_codes) > 0 && !is.null(degree_data$subject_names)){
-                                # Look up names for the blocking codes
+
+                            # Check subjects_data availability and look up names there
+                            if (length(blocking_codes) > 0 && !is.null(degree_data$subjects_data)){ 
                                 name_col <- paste0("name_", language)
-                                blocking_names <- degree_data$subject_names %>% 
-                                    filter(subject_code %in% blocking_codes) %>% 
+                                blocking_names <- degree_data$subjects_data %>%
+                                    filter(subject_code %in% blocking_codes) %>%
                                     pull(!!sym(name_col))
-                                
-                                # Format names nicely (e.g., A, B and C)
-                                formatted_names <- format_subject_list(blocking_names, language)
-                                
-                                status_text_final <- sprintf(
-                                    translate(language, "Not available (You have already passed %s)"),
-                                    formatted_names
-                                )
+
+                                # Check if any names were found
+                                if(length(blocking_names) > 0) {
+                                  # Format names nicely (e.g., A, B and C)
+                                  formatted_names <- format_subject_list(blocking_names, language)
+
+                                  status_text_final <- sprintf(
+                                      translate(language, "Not available (You have already passed %s)"),
+                                      formatted_names
+                                  )
+                                } else {
+                                  # Fallback if names couldn't be found for the codes
+                                  status_text_final <- translate(language, "Not available") 
+                                }
                             } else {
-                                # Fallback if names can't be found
+                                # Fallback if blocking_codes is empty or subjects_data is NULL
                                 status_text_final <- translate(language, "Not available")
                             }
                        } else {
                            # Fallback if details missing
                            status_text_final <- translate(language, "Not available")
-                       } 
+                       }
                     } else if (reason_code == "SEMESTER_FAILED") {
                         status_text_final <- translate(language, "Not available (Not offered this semester)")
                     } else {
@@ -389,8 +394,7 @@ subjectEnrollmentServer <- function(id, language) {
 
         # --- Handle Standard Prerequisites ---
         if (length(subject_prereqs_codes) > 0) {
-          # Filter the names data frame
-          filtered_names <- degree_data$subject_names %>%
+          filtered_names <- degree_data$subjects_data %>%
             filter(subject_code %in% subject_prereqs_codes)
 
           dynamic_name_col <- paste0("name_", language)
@@ -899,17 +903,17 @@ subjectEnrollmentServer <- function(id, language) {
         fail_marks <- c('SU', 'NP', translate(language, "Fail"))
         
         # Only try to get info if we have recommendations and student data
-        if(length(recommended_list$subject_code) > 0) {
+        if(length(recommended_list$subject_code) > 0 && !is.null(degree_data$subjects_data)) {
           # Get abbreviations and failure status for each recommended subject
           for(i in 1:min(6, length(recommended_list$subject_code))) {
             subject_code <- recommended_list$subject_code[i]
             if(!is.na(subject_code)) {
               # Fetch full name
               full_name_col <- paste0("name_", language)
-              subject_full_name <- degree_data$subject_names %>%
-                filter(subject_code == !!subject_code) %>%
-                pull(!!sym(full_name_col))
-              subject_display_name <- ifelse(length(subject_full_name) > 0, subject_full_name[1], "") # Use full name or empty string
+              subject_full_name_df <- degree_data$subjects_data %>%
+                filter(subject_code == !!subject_code)
+              subject_full_name <- if(nrow(subject_full_name_df) > 0) subject_full_name_df[[full_name_col]][1] else ""
+              subject_display_name <- ifelse(nchar(subject_full_name) > 0, subject_full_name, "") # Use full name or empty string
 
               # Fetch ECTS credits
               subject_ects <- degree_data$subjects_data %>%
@@ -1071,16 +1075,17 @@ subjectEnrollmentServer <- function(id, language) {
         inputsOK <- !is.null(input$selected_semester) && has_selected_subjects
         if (!inputsOK) return(NULL)
         activity_deadline_calendar <- degree_data$subject_overlap_data
-        if (nrow(activity_deadline_calendar)==0) return(NULL)
         
         # per cada activitat de cada assignatura nomes darrers N dies indicats 
+        if (is.null(activity_deadline_calendar) || nrow(activity_deadline_calendar)==0) return(NULL)
         for (i in 1:nrow(activity_deadline_calendar)) {
           j=ncol(activity_deadline_calendar)
           
           # buscar el primer 1 per la dreta
-          while (activity_deadline_calendar[i,j]==0) {
+          while (j > 4 && activity_deadline_calendar[i,j]==0) {
             j=j-1
           }
+          if (j <= 4) next # Skip if no '1' found in relevant columns
           # guardar els lliuraments
           submissions=rbind(submissions,data.frame(subject_code=activity_deadline_calendar[i,1],day_number=j-4,load=1))
           
@@ -1094,6 +1099,8 @@ subjectEnrollmentServer <- function(id, language) {
           }
         }
         
+        # Check if submissions is NULL after loop (possible if all overlap data was 0)
+        if (is.null(submissions)) return(NULL)
         # acumular les activitats de cada assignatura
         accumulated_activities=aggregate(activity_deadline_calendar[,-(1:4)],list(activity_deadline_calendar$subject_code), sum)
         colnames(accumulated_activities)[1]='subject_code'
@@ -1121,11 +1128,11 @@ subjectEnrollmentServer <- function(id, language) {
         # 09/02/2023 JULIA: no funciona para el segundo semestre !!!
         #semester_start_date <- if_else(input$selected_semester == 1, inici_sem$first_semester_start, inici_sem$second_semester_start)
         semester_start_date <- semester_dates$first_semester_start
-        subjects_info <- tibble(
-          subject_code = degree_data$subject_names[["subject_code"]],
-          full_name = degree_data$subject_names[[paste0("name_",language)]]
-        ) %>% 
-          left_join(degree_data$subjects_data, by = "subject_code") %>% 
+
+        name_col_cal <- paste0("name_",language)
+        subjects_info <- degree_data$subjects_data %>%
+          dplyr::select(subject_code, !!sym(name_col_cal), subject_abbreviation) %>%
+          rename(full_name = !!sym(name_col_cal)) %>%
           mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
         accumulated_activities_long <- as_tibble(accumulated_activities_long) %>% 
           mutate(semester_date = (semester_start_date + day_number)) %>% 
@@ -1188,8 +1195,9 @@ subjectEnrollmentServer <- function(id, language) {
         # JULIA 19/10/2023 afegir nom assignatura, capçalera amb idioma
         degree_dataOUT = degree_data()
         if (!is.null(degree_dataOUT$student_data) && nrow(degree_dataOUT$student_data) > 0) {
-          academic_record_data=merge(degree_dataOUT$student_data, degree_dataOUT$subject_names, by.x='subject_code', by.y='subject_code')
-          academic_record_data=academic_record_data[,c('relative_semester', paste0('name_',language), 'subject_mark')] 
+          name_col_rec <- paste0('name_',language)
+          academic_record_data=merge(degree_dataOUT$student_data, degree_dataOUT$subjects_data, by.x='subject_code', by.y='subject_code')
+          academic_record_data=academic_record_data[,c('relative_semester', name_col_rec, 'subject_mark')]
           academic_record_data=academic_record_data[order(academic_record_data$relative_semester),]
           # JULIÀ 07/11/2023 notas
           academic_record_data[academic_record_data$subject_mark=="M",'subject_mark']=translate(language, "With Honors")
@@ -1214,11 +1222,10 @@ subjectEnrollmentServer <- function(id, language) {
         }
         ns <- session$ns
         degree_data <- degree_data()
-        subjects_info <- tibble(
-          subject_code = degree_data$subject_names[["subject_code"]],
-          full_name = degree_data$subject_names[[paste0("name_",language)]]
-        ) %>% 
-          left_join(degree_data$subjects_data, by = "subject_code") %>% 
+        name_col_enr <- paste0("name_",language)
+        subjects_info <- degree_data$subjects_data %>%
+          dplyr::select(subject_code, !!sym(name_col_enr), subject_abbreviation) %>%
+          rename(full_name = !!sym(name_col_enr)) %>%
           mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
         descartaStr <- subjects_info %>% 
           filter(subject_code %in% discarded_list$subject_code) %>% 
@@ -1274,8 +1281,8 @@ subjectEnrollmentServer <- function(id, language) {
         req(input$degree)
         ns <- session$ns
         degree_data = degree_data()
-        # JULIA 10/01/2023 cambiar noms por full_name
-        full_name <- degree_data$subject_names[[paste0("name_",language)]]
+        name_col_search <- paste0("name_",language)
+        subject_names_list <- degree_data$subjects_data[[name_col_search]]
         tagList(
           textInput(
             ns("search_subject"),
@@ -1570,7 +1577,7 @@ subjectEnrollmentServer <- function(id, language) {
             prerequisites <- degree_data$prerequisites_data
 
             # Add subject type/path info needed for prioritization later
-            subject_details_for_merge <- degree_data$subjects_data %>%
+            subject_details_for_merge <- all_subjects_data %>%
               dplyr::select(subject_code, type, path)
             arranged_distances <- left_join(arranged_distances, subject_details_for_merge, by = "subject_code")
 

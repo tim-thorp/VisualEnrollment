@@ -3,7 +3,7 @@ load_files <- function() {
   files <- list()
 
   # Define the total number of files and initialize the progress bar
-  total_files_to_load <- 14
+  total_files_to_load <- 13
   message("Loading data files:")
   pb <- utils::txtProgressBar(min = 0, max = total_files_to_load, style = 3, width = 50, char = "=")
   current_file_count <- 0
@@ -51,26 +51,24 @@ load_files <- function() {
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
 
-  ## noms_INFORMATICA.csv
-  files$noms_INFORMATICA <-  readr::read_delim(
-    system.file("data_files", "noms_INFORMATICA.csv", package = "visualenrollment"),
+  ## subjects_INFORMATICA.csv
+  files$subjects_INFORMATICA <- readr::read_delim(
+    system.file("data_files", "subjects_INFORMATICA.csv", package = "visualenrollment"),
     delim = ";",
-    col_types = readr::cols(.default = "c")
+    col_names = TRUE,
+    col_types = readr::cols(
+      subject_code = "c",
+      absolute_semester = "d",
+      semester_number = "c",
+      type = "c",
+      path = "c",
+      subject_abbreviation = "c",
+      credits = "d",
+      name_en = "c",
+      name_es = "c",
+      name_ca = "c"
+    )
   )
-  # Rename columns to be more descriptive
-  colnames(files$noms_INFORMATICA) <- c("subject_code", "name_en", "name_es", "name_ca")
-  current_file_count <- current_file_count + 1
-  utils::setTxtProgressBar(pb, current_file_count)
-
-  ## assignatures_INFORMATICA.csv
-  files$assignatures_INFORMATICA <- readr::read_delim(
-    system.file("data_files", "assignatures_INFORMATICA.csv", package = "visualenrollment"),
-    delim=";",
-    col_names=TRUE,
-    col_types=readr::cols("c", "d", "c", "c", "c", "c", "c", "d")
-  )
-  # Rename columns to be more descriptive
-  colnames(files$assignatures_INFORMATICA) <- c("subject_code", "absolute_semester", "semester_number", "type", "path", "name", "subject_abbreviation", "credits")
   current_file_count <- current_file_count + 1
   utils::setTxtProgressBar(pb, current_file_count)
 

@@ -90,9 +90,8 @@ VisualEnrollment/
 │   │   ├── Dso1_INFORMATICA.csv     # Semester 1 overlaps matrix  
 │   │   ├── Dso2_INFORMATICA.csv     # Semester 2 overlaps matrix  
 │   │   ├── aeps_INFORMATICA.csv     # Student academic record data (not included in repository)  
-│   │   ├── assignatures_INFORMATICA.csv  # Subject information  
+│   │   ├── subjects_INFORMATICA.csv # Subject information  
 │   │   ├── idps_pilot               # Pilot student IDs  
-│   │   ├── noms_INFORMATICA.csv     # Subject names in different languages  
 │   │   ├── prerequisites_INFORMATICA.csv # Prerequisite course relationships
 │   │   ├── recomanacions_INFORMATICA.csv  # Recommendation data (not included in repository)  
 │   │   ├── restrictions_INFORMATICA.csv # Other course enrollment restrictions
