@@ -1112,7 +1112,7 @@ subjectEnrollmentServer <- function(id, language) {
           j=j-workload
           
           # treure els 1 anteriors
-          while ((activity_deadline_calendar[i,j]==1) && (j>4)) {
+          while (j > 4 && activity_deadline_calendar[i,j] == 1) {
             activity_deadline_calendar[i,j]=0
             j=j-1
           }
