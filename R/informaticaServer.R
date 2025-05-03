@@ -1256,8 +1256,8 @@ subjectEnrollmentServer <- function(id, language) {
           filter(subject_code %in% selected_list$subject_code) %>% 
           pull(full_name)
         tagList(
-          h2(translate(language, "¡Gracias por utilizar Visual Enrollment!")),
-          h3(translate(language, "Tus preferencias y selección para la siguiente matricula")),
+          h2(translate(language, "Thank you for using Visual Enrollment!")),
+          h3(translate(language, "Your preferences and selection for the next enrollment:")),
           tags$ol(
             tags$li(class="step0", translate(language, "Discard"), p(paste(descartaStr, collapse = ", "))),
             tags$li(class="step1", translate(language, "Preferences"),
