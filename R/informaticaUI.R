@@ -28,7 +28,7 @@ subjectEnrollmentUI <- function(id, language) {
             class="step-convalida",
             h4(translate(
               language,
-              "Here's your academic status. Mark subjects as validated or discarded (it is optional)"
+              "We've loaded your academic record. Select subjects you plan to transfer credit for, or do not plan to take. This step is optional. Click 'Continue' when ready."
             )),
             actionButton(
               namespace("continue_button"),
@@ -57,11 +57,11 @@ subjectEnrollmentUI <- function(id, language) {
             ),
             # --- Itinerary Dropdown ---
             tags$div(
-              title=translate(language, "Selecting an itinerary will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet."),
+              title=translate(language, "Selecting a track will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet."),
               style="height: 72px; margin-bottom: 40px;",
               selectInput(
                 namespace("itinerary"),
-                h4(translate(language, "Choose Itinerary:"), icon("info-circle")),
+                h4(translate(language, "Choose Track:"), icon("info-circle")),
                 choices = setNames(
                   c("1", "2", "3", "4", "5", "0"), # Using path numbers as values, 0 for "Not Sure"
                   c(
@@ -79,10 +79,10 @@ subjectEnrollmentUI <- function(id, language) {
             # --- Advanced Settings (Map Appearance) ---
             hr(), # Add a horizontal rule separator
             h4(tags$strong(translate(language, "Advanced Settings")), style="margin-top: 20px; margin-bottom: 15px;"),
-            p(tags$small(translate(language, "Assign a value to the topics based on their importance:")), style="font-style: italic; margin-bottom: 20px;"),
+            p(tags$small(translate(language, "Rate the importance of the following criteria for separating subjects you prefer not to take together:")), style="font-style: italic; margin-bottom: 20px;"),
             # --- END Itinerary Dropdown ---
             tags$div(
-              title=translate(language,"Separate the most difficult subjects"),
+              title=translate(language,"Separate subjects often failed when taken together"),
               sliderInput(
                 namespace("difficulty"),
                 tags$label(tags$strong(translate(language,"Difficulty:")), icon("info-circle")),
@@ -95,7 +95,7 @@ subjectEnrollmentUI <- function(id, language) {
             ),
             tags$div(
               title=translate(language, 
-                "Separate subjects that are never enrolled together"
+                "Separate subjects that are rarely enrolled together"
               ),
               sliderInput(
                 namespace("popularity"),
@@ -113,7 +113,7 @@ subjectEnrollmentUI <- function(id, language) {
               ),
               sliderInput(
                 namespace("overlap"),
-                tags$label(tags$strong(translate(language, "Overlaps between deadlines:")), icon("info-circle")),
+                tags$label(tags$strong(translate(language, "Assignment Deadline Overlaps:")), icon("info-circle")),
                 min = 1,
                 max = 5,
                 value = 1,
@@ -137,7 +137,7 @@ subjectEnrollmentUI <- function(id, language) {
             ),
             actionButton(
               namespace("recommend"),
-              translate(language, "Recommend"),
+              translate(language, "Recommend Subjects"),
               onclick = "$('.step-convalida').hide();$('.step-sliders').hide();$('.step-recommend').hide();$('.selecciona_asignatures').show()"
             ),
           ),
@@ -173,7 +173,7 @@ subjectEnrollmentUI <- function(id, language) {
                 tags$div(
                   class = "steps step0",
                   tags$ol(
-                    tags$li(class="step0", translate(language, "Discard")),
+                    tags$li(class="step0", translate(language, "Discard Subjects")),
                     tags$li(class="step1", translate(language, "Preferences")),
                     tags$li(class="step2", translate(language, "Recommendations")),
                     tags$li(class="step3", translate(language, "Selection"))
@@ -250,7 +250,7 @@ subjectEnrollmentUI <- function(id, language) {
                style="height: 72px;",
                sliderInput(
                  namespace("semester"),
-                 translate(language, "Importance of semi-annual organization:"),
+                 translate(language, "Importance of semester planning:"),
                  # JULIA 18/12/2022 forzar la organizacion semestral a 5
                  min = 1,
                  max = 5,
@@ -315,7 +315,7 @@ subjectEnrollmentUI <- function(id, language) {
                 namespace("workload"),
                 # Combine label text and tooltip icon
                 label = tagList(
-                  translate(language, "You can specify the number of days you think you are going to dedicate to each activity:"),
+                  translate(language, "Optionally, specify the number of days you expect to dedicate to each activity:"),
                   # Add icon with translated tooltip text
                   icon("info-circle", 
                        title = translate(language, "We estimate that an average activity requires about two weeks of dedication (15 days). Adjust this value according to your personal planning."),
@@ -330,8 +330,8 @@ subjectEnrollmentUI <- function(id, language) {
           ),
           div(
             class="download_asignatures",
-            h4(translate(language, "When you have selected the most suitable combination of subjects, you can download your enrollment configuration.")),
-            actionButton(namespace("download"), translate(language, "Download enrolment"))
+            h4(translate(language, "When you have selected the most suitable combination of subjects, you can download your enrollment plan.")),
+            actionButton(namespace("download"), translate(language, "Download enrollment plan"))
           )
         ),
         fluent_main(
@@ -340,7 +340,7 @@ subjectEnrollmentUI <- function(id, language) {
             # Add a unique ID to the calendar container
             id = namespace("cal_plot_container"), 
             tagList(
-              h2(translate(language, "Graded Activity Calendar")),
+              h2(translate(language, "Assignment Submission Calendar")),
               plotOutput(namespace("cal"))
             )
           ),

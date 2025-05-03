@@ -20,15 +20,15 @@ subjectEnrollmentServer <- function(id, language) {
       search_had_results <- reactiveVal(TRUE)
       
       static_legend_labels_base <- c(
-        "Pass", "Transfer", "Fail", "Not available", "Discarded", "Pending", 
+        "Passed", "Transferred", "Failed", "Not available", "Discarded", "Pending", 
         "R1", "R2", "R3", "R4", "R5", "R6",
         "Selected"
       )
 
       color_palette_base <- c(
-        "#b9f6ff", # Pass
-        "#E3FBFF", # Transfer
-        "#ffc2b9", # Fail 
+        "#b9f6ff", # Passed
+        "#E3FBFF", # Transferred
+        "#ffc2b9", # Failed 
         "#cccccc", # Not available 
         "#e0e0e0", # Discarded
         "#f9f9f9", # Pending 
@@ -232,7 +232,7 @@ subjectEnrollmentServer <- function(id, language) {
           pull(credits) %>%
           as.character() # Ensure it's character
 
-        # --- Get Current Subject Mark (potentially R1-R6) ---
+        # --- Get Current Subject Grade (potentially R1-R6) ---
         display_mark <- subject_positions %>%
           filter(subject_code == hovered_code) %>%
           pull(subject_mark) %>%
@@ -248,10 +248,10 @@ subjectEnrollmentServer <- function(id, language) {
           if (nrow(student_record) > 0) {
             # Check the last recorded mark for this subject
             original_mark <- student_record$subject_mark[1] # Already aggregated to last mark
-            fail_marks <- c('SU', 'NP', translate(language, "Fail"))
+            fail_marks <- c('SU', 'NP', translate(language, "Failed"))
             if (original_mark %in% fail_marks) {
-              # Wrap the "(Fail)" including parentheses in a span with the fail color
-              fail_text <- paste0(" <span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
+              # Wrap the "(Failed)" including parentheses in a span with the fail color
+              fail_text <- paste0(" <span style='color: #ff7f6d;'>(", translate(language, "Failed"), ")</span>")
               status_text <- paste0(base_status_text, fail_text)
             } else {
               status_text <- base_status_text # Set to "Recommendation X" if not failed
@@ -262,13 +262,13 @@ subjectEnrollmentServer <- function(id, language) {
         } else if (startsWith(display_mark, "R")) { # Handle case where student_data might be NULL but it's still Rx
             rank_number <- substr(display_mark, 2, 2) 
             status_text <- paste0(translate(language, "Recommendation"), " ", rank_number)
-        } else if (display_mark == translate(language, "Fail")) {
-            # Ensure "Fail" status is displayed correctly if not an R-rank
-            status_text <- translate(language, "Fail")
-        } else if (display_mark == translate(language, "Pass")) {
-            status_text <- translate(language, "Pass")
-        } else if (display_mark == translate(language, "Transfer")) {
-            status_text <- translate(language, "Transfer")
+        } else if (display_mark == translate(language, "Failed")) {
+            # Ensure "Failed" status is displayed correctly if not an R-rank
+            status_text <- translate(language, "Failed")
+        } else if (display_mark == translate(language, "Passed")) {
+            status_text <- translate(language, "Passed")
+        } else if (display_mark == translate(language, "Transferred")) {
+            status_text <- translate(language, "Transferred")
         }
         # Add other explicit translations if needed, otherwise keep display_mark
 
@@ -354,8 +354,8 @@ subjectEnrollmentServer <- function(id, language) {
         # --- End "Not available" explanation ---
 
         # Define passed/transferred marks for checking prerequisites
-        passed_marks <- c(translate(language, "Pass"), translate(language, "Transfer"))
-        fail_marks <- c("SU", "NP", translate(language, "Fail")) # Needed for legend status
+        passed_marks <- c(translate(language, "Passed"), translate(language, "Transferred"))
+        fail_marks <- c("SU", "NP", translate(language, "Failed")) # Needed for legend status
         # Define marks considered 'earned' for ECTS calculation
         earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", passed_marks)
 
@@ -507,7 +507,7 @@ subjectEnrollmentServer <- function(id, language) {
           if (!is.null(itinerary_display_elements)) {
             tags$div(
               style = "margin-top: 8px;",
-              tags$strong(paste0(translate(language, "Itinerary:"), " ")),
+              tags$strong(paste0(translate(language, "Track:"), " ")),
               tags$br(),
               itinerary_display_elements
             )
@@ -645,7 +645,7 @@ subjectEnrollmentServer <- function(id, language) {
 
             # Define FINAL passed/transfer marks (raw codes) - needed for rule overrides
             final_passed_transfer_marks <- c("A", "NO", "EX", "M", "Reconeguda")
-            passed_transfer_marks <- c(final_passed_transfer_marks, translate(language, "Pass"), translate(language, "Transfer"))
+            passed_transfer_marks <- c(final_passed_transfer_marks, translate(language, "Passed"), translate(language, "Transferred"))
 
             # --- Apply Restrictions from CSV --- 
             if (!is.null(input$idp) && input$idp != "---" && !is.null(degree_data$restrictions_data)) {
@@ -784,14 +784,14 @@ subjectEnrollmentServer <- function(id, language) {
              
              # forzar y ordenar todas las notas posibles
              # incloure les convalidades (Reconeguda)
-             subject_coordinates[subject_coordinates$subject_mark %in% c('A','NO','EX','M'),'subject_mark']=translate(language, "Pass")
-             subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Fail")
-             subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transfer")
+             subject_coordinates[subject_coordinates$subject_mark %in% c('A','NO','EX','M'),'subject_mark']=translate(language, "Passed")
+             subject_coordinates[subject_coordinates$subject_mark %in% c('NP','SU'),'subject_mark']=translate(language, "Failed")
+             subject_coordinates[subject_coordinates$subject_mark %in% c('Reconeguda'),'subject_mark']=translate(language, "Transferred")
              
              subject_coordinates$subject_mark=factor(subject_coordinates$subject_mark,c(
-                                    translate(language, "Pass"), 
-                                    translate(language, "Transfer"),
-                                    translate(language, "Fail"),
+                                    translate(language, "Passed"), 
+                                    translate(language, "Transferred"),
+                                    translate(language, "Failed"),
                                     translate(language, "Not available"),
                                     translate(language, "Discarded"),
                                     translate(language, "Pending"),
@@ -919,7 +919,7 @@ subjectEnrollmentServer <- function(id, language) {
         
         # Get subject abbreviations and check for failure status
         custom_labels <- vector("character", 7)
-        fail_marks <- c('SU', 'NP', translate(language, "Fail"))
+        fail_marks <- c('SU', 'NP', translate(language, "Failed"))
         
         # Only try to get info if we have recommendations and student data
         if(length(recommended_list$subject_code) > 0 && !is.null(degree_data$subjects_data)) {
@@ -954,8 +954,8 @@ subjectEnrollmentServer <- function(id, language) {
 
               # Construct label using the full name and ECTS
               label_prefix <- paste0(i, ": ", subject_display_name, ects_display)
-              # Wrap the "(Fail)" including parentheses in a span with the fail color if needed
-              fail_span <- paste0("<span style='color: #ff7f6d;'>(", translate(language, "Fail"), ")</span>")
+              # Wrap the "(Failed)" including parentheses in a span with the fail color if needed
+              fail_span <- paste0("<span style='color: #ff7f6d;'>(", translate(language, "Failed"), ")</span>")
               label_suffix <- ifelse(is_failed, paste0(" ", fail_span), "")
               custom_labels[i] <- paste0(label_prefix, label_suffix)
 
@@ -1197,9 +1197,9 @@ subjectEnrollmentServer <- function(id, language) {
             title=paste0(
               translate(language, "Total number of activities"),": ",
               nrow(submissions),"\n",
-              translate(language, "Average daily activities"),": ",
+              translate(language, "Number of days with activities"),": ",
               active_days," (", active_days_prop,"%)\n",
-              translate(language, "Percentage of overlapping (days with more than 1 activity)"),": ",
+              translate(language, "Percentage of overlap (days with more than 1 activity)"),": ",
               overlap_days, " (", overlap_days_prop,"%)\n"
             )
           )
@@ -1221,13 +1221,13 @@ subjectEnrollmentServer <- function(id, language) {
           # JULIÀ 07/11/2023 notas
           academic_record_data[academic_record_data$subject_mark=="M",'subject_mark']=translate(language, "With Honors")
           academic_record_data[academic_record_data$subject_mark=="EX",'subject_mark']=translate(language, "Excellent")
-          academic_record_data[academic_record_data$subject_mark=="NO",'subject_mark']=translate(language, "Good")
+          academic_record_data[academic_record_data$subject_mark=="NO",'subject_mark']=translate(language, "Very Good")
           academic_record_data[academic_record_data$subject_mark=="A",'subject_mark']=translate(language, "Satisfactory")
-          academic_record_data[academic_record_data$subject_mark=="SU",'subject_mark']=translate(language, "Fail")
-          academic_record_data[academic_record_data$subject_mark=="NP",'subject_mark']=translate(language, "Withdrawal")
+          academic_record_data[academic_record_data$subject_mark=="SU",'subject_mark']=translate(language, "Failed")
+          academic_record_data[academic_record_data$subject_mark=="NP",'subject_mark']=translate(language, "Not Submitted")
           # falta traduir les convalidacions
-          academic_record_data[academic_record_data$subject_mark=="Reconeguda",'subject_mark']=translate(language, "Transfer")
-          colnames(academic_record_data)=c(translate(language, "Semester"), translate(language, "Subject"), translate(language, "Mark")) 
+          academic_record_data[academic_record_data$subject_mark=="Reconeguda",'subject_mark']=translate(language, "Transferred")
+          colnames(academic_record_data)=c(translate(language, "Semester"), translate(language, "Subject"), translate(language, "Grade")) 
           # mostrar la taula tal qual
           academic_record_data
         }
@@ -1259,14 +1259,14 @@ subjectEnrollmentServer <- function(id, language) {
           h2(translate(language, "Thank you for using Visual Enrollment!")),
           h3(translate(language, "Your preferences and selection for the next enrollment:")),
           tags$ol(
-            tags$li(class="step0", translate(language, "Discard"), p(paste(descartaStr, collapse = ", "))),
+            tags$li(class="step0", translate(language, "Discarded Subjects"), p(paste(descartaStr, collapse = ", "))),
             tags$li(class="step1", translate(language, "Preferences"),
                     div(
                       translate(language,"Difficulty:"), paste0(input$difficulty, "/5"),
                       br(),
                       translate(language, "Popularity:"),  paste0(input$popularity, "/5"),
                       br(),
-                      translate(language, "Overlaps between deadlines:"),  paste0(input$overlap, "/5"),
+                      translate(language, "Assignment Deadline Overlaps:"),  paste0(input$overlap, "/5"),
                       br(),
                       br(),
                     )
@@ -1274,7 +1274,7 @@ subjectEnrollmentServer <- function(id, language) {
             tags$li(class="step2", translate(language, "Recommendations"), p(paste(recomanaStr, collapse = ", "))),
             tags$li(class="step3", translate(language, "Selection"), p(paste(seleccioStr, collapse = ", "))),
           ),
-          actionButton(ns("screenshot"), translate(language, "Download enrolment")),
+          actionButton(ns("screenshot"), translate(language, "Download enrollment plan")),
           NULL
         )
       })
@@ -1290,7 +1290,7 @@ subjectEnrollmentServer <- function(id, language) {
         tagList(
           selectInput(
             ns("subject_type"),
-            translate(language, "Highlight each type of subject"),
+            translate(language, "Highlight a type of subject"),
             choices = c(translate(language, "All"), subject_type)
           )
         )
@@ -1381,7 +1381,7 @@ subjectEnrollmentServer <- function(id, language) {
         if (is.null(clicked)) return(NULL)
         if(enrollment_step$current_step == 0) {
           descartable <- !(clicked$subject_code %in% selected_list$subject_code) &&
-            clicked$subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Discarded"))
+            clicked$subject_mark %in% c("SU", "NP", translate(language, "Failed"), translate(language, "Pending"), translate(language, "Discarded"))
           if(descartable) { 
             if(length(discarded_list$subject_code)>0 && clicked_list$subject_code[[1]] %in% discarded_list$subject_code) {
               discarded_list$subject_code <- discarded_list$subject_code[ !discarded_list$subject_code %in% clicked_list$subject_code[[1]] ]
@@ -1392,7 +1392,7 @@ subjectEnrollmentServer <- function(id, language) {
         }
         if(enrollment_step$current_step > 1) {
           matriculable <- enrollment_step$current_step != 0 && !(clicked$subject_code %in% discarded_list$subject_code) 
-          matriculable <- matriculable & (clicked$subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Selected")))
+          matriculable <- matriculable & (clicked$subject_mark %in% c("SU", "NP", translate(language, "Failed"), translate(language, "Pending"), translate(language, "Selected")))
           matriculable <- matriculable | str_detect(clicked$subject_mark, "^(R1|R2|R3|R4|R5|R6)")
           
           if(matriculable){
@@ -1448,7 +1448,7 @@ subjectEnrollmentServer <- function(id, language) {
         enrollment_step$current_step <- 2
         session$sendCustomMessage(type = "steps",  message = paste0("step",enrollment_step$current_step))
         enrollable <- as_tibble(subject_positions) %>% 
-          filter(subject_mark %in% c("SU", "NP", translate(language, "Fail"), translate(language, "Pending"), translate(language, "Selected")) | str_detect(subject_mark, "^(R1|R2|R3|R4|R5|R6)")
+          filter(subject_mark %in% c("SU", "NP", translate(language, "Failed"), translate(language, "Pending"), translate(language, "Selected")) | str_detect(subject_mark, "^(R1|R2|R3|R4|R5|R6)")
         )
         
         # Itinerary mapping (using path numbers from CSV)
@@ -1462,7 +1462,7 @@ subjectEnrollmentServer <- function(id, language) {
 
         # Get completed subjects codes (used multiple times)
         passed_or_transferred_codes <- subject_positions %>%
-          filter(subject_mark %in% c(translate(language, "Pass"), translate(language, "Transfer"))) %>%
+          filter(subject_mark %in% c(translate(language, "Passed"), translate(language, "Transferred"))) %>%
           pull(subject_code) %>%
           unique()
 
@@ -1541,11 +1541,11 @@ subjectEnrollmentServer <- function(id, language) {
         
         # recomendador basado en distancias
         if (input$recommender==translate(language,"Distance")) {
-          failed <- final_enrollable_pool  %>% filter(subject_mark %in% c("SU","NP", translate(language, "Fail"))) # Use filtered pool
+          failed <- final_enrollable_pool  %>% filter(subject_mark %in% c("SU","NP", translate(language, "Failed"))) # Use filtered pool
           # JULIA: 03/10/2023
           #passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M"))
-          passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M", translate(language, "Pass")))	  
-          transferred <- as_tibble(subject_positions) %>% filter(subject_mark %in% c(translate(language, "Transfer")))
+          passed <- as_tibble(subject_positions) %>% filter(subject_mark %in% c("A","NO","EX","M", translate(language, "Passed")))	  
+          transferred <- as_tibble(subject_positions) %>% filter(subject_mark %in% c(translate(language, "Transferred")))
           completed_subjects <- rbind(passed, transferred)
           completed_subjects_n <- length(completed_subjects$subject_code)
           subject_distances = tibble(subject_code = final_enrollable_pool$subject_code, d = 0)
@@ -1595,7 +1595,7 @@ subjectEnrollmentServer <- function(id, language) {
             arranged_distances <- left_join(arranged_distances, subject_details_for_merge, by = "subject_code")
 
             # --- Calculate Earned ECTS for recommendation check ---
-            earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Pass"), translate(language, "Transfer"))
+            earned_marks_for_ects <- c("A", "NO", "EX", "M", "Reconeguda", translate(language, "Passed"), translate(language, "Transferred"))
             earned_ects_for_rec <- 0 # Default to 0
             if (!is.null(degree_data$student_data)) {
               passed_or_transferred_codes_for_ects <- degree_data$student_data %>%
@@ -1698,7 +1698,7 @@ subjectEnrollmentServer <- function(id, language) {
             # Identify failed subjects from student data if available
             failed_subject_codes <- character()
             if (!is.null(degree_data$student_data)) {
-              fail_marks_check <- c("SU", "NP", translate(language, "Fail"))
+              fail_marks_check <- c("SU", "NP", translate(language, "Failed"))
               failed_subject_codes <- degree_data$student_data %>%
                 filter(subject_mark %in% fail_marks_check) %>%
                 pull(subject_code) %>%
