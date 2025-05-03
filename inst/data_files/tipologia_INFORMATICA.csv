@@ -2,7 +2,7 @@ type;path;tipologia_en;tipologia_ca;tipologia_es
 B;0;Basic;Bàsica;Básica
 O;0;Mandatory;Obligatòria;Obligatoria
 T;0;Mandatory;Obligatòria;Obligatoria
-C;0;Complement;Complement;Complemento
+C;0;Bridging;Complement;Complemento
 P;0;Elective;Optativa;Optativa
 P;1;Hardware (Elec.);Maquinari (Opt.);Hardware (Opt.)
 P;2;Software (Elec.);Programari (Opt.);Software (Opt.)
