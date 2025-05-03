@@ -289,17 +289,6 @@ subjectEnrollmentUI <- function(id, language) {
              # Graus disponibles:
              uiOutput(namespace("uiGrau")),
              
-             # # TFM
-             # tags$div(
-             #   title="TFM", 
-             #   style="height: 72px;",
-             #   textInput(
-             #     namespace("tfm"),
-             #     translate(lang, "TFM:"),
-             #     value = "05.616"
-             #   )
-             # ),
-             
              # Semestre 1 o 2
              uiOutput(namespace("uiSem")),
              

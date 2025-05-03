@@ -914,7 +914,7 @@ subjectEnrollmentServer <- function(id, language) {
           )
         })
         
-        # Generate items for the second legend (Recommendations & selection)
+        # Generate items for the second and third legend (Recommendations & selection)
         colors2 <- color_palette[7:13]
         
         # Get subject abbreviations and check for failure status
@@ -1324,7 +1324,7 @@ subjectEnrollmentServer <- function(id, language) {
               "DATASCIENCE"
             ),
             c(
-              translate(language,"Computer science degree"),
+              translate(language,"Computer science"),
               translate(language,"Applied data science")
             )
           ),
