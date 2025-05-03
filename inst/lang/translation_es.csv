@@ -75,11 +75,6 @@ Status:;Estado:
 Desired ECTS for Enrollment:;ECTS deseados para la matrícula:
 Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.;Selecciona los ECTS a matricular. Normalmente 1 asignatura = 6 ECTS, excepto prácticas o TFG.
 Choose Track:;Elige Itinerario:
-Computer Engineering;Ingeniería de computadores
-Software Engineering;Ingeniería del software
-Computing;Computación
-Information Systems;Sistemas de información
-Information Technology;Tecnologías de la información
 Not Sure;No estoy seguro
 Track:;Itinerario:
 Elective;Optativa
@@ -93,3 +88,11 @@ Not available (Minimum %s ECTS required);No disponible (Mínimo %s ECTS requerid
 Not available (You have already passed %s);No disponible (Ya has superado %s)
 and;y
 No matching subjects found.;No se ha encontrado ninguna asignatura coincidente.
+Show all;Mostrar todas
+Type;Tipo
+Track;Itinerario
+Name;Nombre
+Filter subjects by...;Filtrar asignaturas por...
+Select type:;Seleccionar tipo:
+Select track:;Seleccionar itinerario:
+Type subject name:;Escribir nombre de asignatura:

@@ -59,22 +59,7 @@ subjectEnrollmentUI <- function(id, language) {
             tags$div(
               title=translate(language, "Selecting a track will prioritize recommending subjects from that branch. Choose 'Not Sure' if you haven't decided yet."),
               style="height: 72px; margin-bottom: 40px;",
-              selectInput(
-                namespace("itinerary"),
-                h4(translate(language, "Choose Track:"), icon("info-circle")),
-                choices = setNames(
-                  c("1", "2", "3", "4", "5", "0"), # Using path numbers as values, 0 for "Not Sure"
-                  c(
-                    translate(language, "Computer Engineering"),
-                    translate(language, "Software Engineering"),
-                    translate(language, "Computing"),
-                    translate(language, "Information Systems"),
-                    translate(language, "Information Technology"),
-                    translate(language, "Not Sure")
-                  )
-                ),
-                selected = "0" # Default to "Not Sure"
-              )
+              uiOutput(namespace("uiItinerary"))
             ),
             # --- Advanced Settings (Map Appearance) ---
             hr(), # Add a horizontal rule separator
@@ -212,10 +197,8 @@ subjectEnrollmentUI <- function(id, language) {
               fluent_grid_item(
                 # Use columns for layout: 4 for legend
                 class = "ms-Grid-col ms-sm12 ms-md12 ms-lg4",
-                # Add the custom HTML legend
-                uiOutput(namespace("uiSubjectType")),
-                uiOutput(namespace("search_subject_input")),
-                textOutput(namespace("search_results_message")),
+                # Dynamic search/filter controls
+                uiOutput(namespace("search_controls_ui")),
                 uiOutput(namespace("uiLegend"))
               )
              )

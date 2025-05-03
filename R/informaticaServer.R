@@ -71,6 +71,45 @@ subjectEnrollmentServer <- function(id, language) {
       } 
       # --- End Helper Function ---
       
+      # --- Helper function for name search ---
+      search_subjects <- function(language, degree_data, subject_coords, search_term) {
+        # Return all selected if search term is empty or null
+        if (is.null(search_term) || str_trim(search_term) == "") {
+          subject_coords$selected_subjects <- 1
+          return(subject_coords)
+        }
+        
+        # Get the correct name column based on language
+        name_col <- paste0("name_", language)
+        # Ensure the column exists in subjects_data before proceeding
+        if(!name_col %in% names(degree_data$subjects_data)) {
+            warning(paste("Name column", name_col, "not found in subjects_data"))
+            subject_coords$selected_subjects <- 1 # Fallback to show all
+            return(subject_coords)
+        }
+        
+        search_term_lower <- tolower(str_trim(search_term))
+        
+        # Get the names corresponding to subject_codes in subject_coords
+        subject_names_map <- degree_data$subjects_data %>% 
+                            dplyr::select(subject_code, !!sym(name_col)) %>% 
+                            rename(subject_name_lang = !!sym(name_col))
+        
+        subject_coords <- left_join(subject_coords, subject_names_map, by = "subject_code")
+        
+        # Perform case-insensitive search and update selected_subjects
+        subject_coords <- subject_coords %>%
+          mutate(
+            subject_name_lower = tolower(subject_name_lang), 
+            selected_subjects = ifelse(str_detect(subject_name_lower, fixed(search_term_lower)), 1, 0)
+          ) %>% 
+          # Remove temporary columns if they exist
+          dplyr::select(-any_of(c("subject_name_lower", "subject_name_lang"))) 
+        
+        return(subject_coords)
+      }
+      # --- End Helper function for name search ---
+      
       degree_data <- reactive({
         if (is.null(input$degree)) {
           return(list(
@@ -423,18 +462,6 @@ subjectEnrollmentServer <- function(id, language) {
         # --- Itinerary Info Processing ---
         itinerary_display_elements <- NULL # Default to NULL
 
-        # Helper function to get translated itinerary name from path number
-        get_itinerary_name <- function(path_num, lang) {
-           switch(path_num,
-             "1" = translate(lang, "Computer Engineering"),
-             "2" = translate(lang, "Software Engineering"),
-             "3" = translate(lang, "Computing"),
-             "4" = translate(lang, "Information Systems"),
-             "5" = translate(lang, "Information Technology"),
-             "" # Default: Should not happen for valid paths
-           )
-        }
-
         # Only process if subject is not passed/transferred
         if (!(display_mark %in% passed_marks)) {
             hovered_subject_details <- degree_data$subjects_data %>% filter(subject_code == hovered_code)
@@ -447,9 +474,18 @@ subjectEnrollmentServer <- function(id, language) {
                     subject_paths <- unlist(str_split(subject_path_str, ",")) # Split for multiple itineraries (e.g., "1,5")
                     selected_itinerary_path <- input$itinerary # User's choice ("0" means Not Sure)
 
+                    # Get itinerary names dynamically from subject_type data
+                    tipologia_col <- paste0("tipologia_", language)
+                    itinerary_names_df <- degree_data$subject_type %>% 
+                        filter(path %in% subject_paths) %>% 
+                        dplyr::select(path, !!sym(tipologia_col))
+
                     itinerary_items <- lapply(subject_paths, function(path_num) {
-                        itinerary_name <- get_itinerary_name(path_num, language)
-                        if (nchar(itinerary_name) > 0) {
+                        # Find the name matching the current path_num
+                        itinerary_name_row <- itinerary_names_df %>% filter(path == path_num)
+                        itinerary_name <- if(nrow(itinerary_name_row) > 0) itinerary_name_row[[tipologia_col]][1] else ""
+
+                        if (nzchar(itinerary_name)) {
                            # Determine emoji: Green ONLY if user selected this specific itinerary
                            emoji <- ifelse(selected_itinerary_path != "0" && path_num == selected_itinerary_path, "🟢", "🟡")
                            tagList(paste(emoji, itinerary_name), tags$br())
@@ -829,24 +865,56 @@ subjectEnrollmentServer <- function(id, language) {
             
             subject_coordinates$selected_subjects=0 # Initialize to 0 (grey)
 
-            # Determine filter/search states
-            is_search_active <- !is.null(input$search_subject) && str_length(str_trim(input$search_subject)) > 0
-            is_type_filter_active <- !is.null(input$subject_type) && input$subject_type != translate(language, "All")
+            # --- Apply Dynamic Filtering/Search --- 
+            req(input$search_method) # Ensure primary selector has a value
+            search_method <- input$search_method
             
-            if (is_search_active) {
-              # Apply search filter (takes precedence)
-              subject_coordinates <- search_subjects(language, degree_data, subject_coordinates, input)
-              # Update search status reactive value
-              search_had_results(any(subject_coordinates$selected_subjects == 1))
-            } else if (is_type_filter_active) {
-              # Apply type filter (only if search is inactive)
-              subject_coordinates <- filter_subjects_by_type(language, degree_data, subject_coordinates, input)
-              search_had_results(TRUE) # Reset status when not searching
+            if (search_method == "name") {
+              # Apply name search
+              if(str_length(str_trim(input$name_search)) > 0) {
+                subject_coordinates <- search_subjects(language, degree_data, subject_coordinates, input$name_search)
+                search_had_results(any(subject_coordinates$selected_subjects == 1))
+              } else {
+                # Empty search box -> show all
+                subject_coordinates$selected_subjects = 1
+                search_had_results(TRUE)
+              }
+            } else if (search_method == "type") {
+              # Apply type filter
+              req(input$type_filter)
+              selected_type_translated <- input$type_filter
+              
+              # Find the type code (e.g., 'B', 'O') corresponding to the translated name
+              tipologia_col <- paste0("tipologia_", language)
+              type_mapping <- degree_data$subject_type %>% 
+                 filter(!!sym(tipologia_col) == selected_type_translated) %>% 
+                 pull(type) %>% 
+                 unique()
+              
+              if(length(type_mapping) > 0) {
+                  subject_coordinates <- subject_coordinates %>% 
+                     mutate(selected_subjects = ifelse(type %in% type_mapping, 1, 0))
+              } else {
+                  # Should not happen if choices are correct, but fallback to show all
+                  subject_coordinates$selected_subjects = 1 
+              }
+              search_had_results(TRUE)
+             
+            } else if (search_method == "track") {
+              # Apply track filter
+              req(input$track_filter)
+              selected_track_path <- input$track_filter
+              
+              # Optional subjects (P) can belong to multiple tracks (e.g., "1,5")
+              subject_coordinates <- subject_coordinates %>% 
+                 mutate(selected_subjects = ifelse(type == "P" & str_detect(path, selected_track_path), 1, 0))
+               search_had_results(TRUE) # Reset status when not searching
             } else {
-              # No search, Type is "All" -> Make all subjects selected (black)
-              subject_coordinates$selected_subjects = 1 
+              # Default: search_method == "none" (Show all)
+              subject_coordinates$selected_subjects = 1
               search_had_results(TRUE) # Reset status when not searching
             }
+            # --- End Dynamic Filtering/Search --- 
 
             # Always use all coordinates for labelling
             label_data <- subject_coordinates
@@ -1280,36 +1348,89 @@ subjectEnrollmentServer <- function(id, language) {
       })
       
       
-      # Cercar per tipologia o nom ----------------------------------------------------------------
-      
-      output$uiSubjectType=renderUI({
-        req(input$degree)
+      # --- Dynamic Search/Filter Controls --- 
+      output$search_controls_ui <- renderUI({
+        req(input$degree, degree_data()$subject_type, degree_data()$subjects_data)
         ns <- session$ns
-        degree_data = degree_data()
-        subject_type <- degree_data$subject_type[[paste0("tipologia_",language)]]
+        degree_data <- degree_data()
+        subject_type_data <- degree_data$subject_type
+        subjects_data <- degree_data$subjects_data
+        
+        # Choices for primary selector
+        search_method_choices <- setNames(
+          c("none", "type", "track", "name"),
+          c(
+            translate(language, "Show all"),
+            translate(language, "Type"),
+            translate(language, "Track"),
+            translate(language, "Name")
+          )
+        )
+        
+        # Choices for secondary type selector
+        tipologia_col <- paste0("tipologia_", language)
+        type_choices_list <- subject_type_data %>% 
+          filter(path == "0", type %in% c("B", "O", "C", "P")) %>% # Filter basic types (excluding TFM)
+          distinct(!!sym(tipologia_col)) %>% 
+          pull(!!sym(tipologia_col))
+        type_filter_choices <- setNames(type_choices_list, type_choices_list)
+
+        # Choices for secondary track selector
+        track_choices_list <- subject_type_data %>% 
+          filter(path != "0") %>% # Filter only actual tracks
+          distinct(path, .keep_all = TRUE) # Keep distinct tracks
+        track_filter_choices <- setNames(track_choices_list$path, track_choices_list[[tipologia_col]])
+        
         tagList(
           selectInput(
-            ns("subject_type"),
-            translate(language, "Highlight a type of subject"),
-            choices = c(translate(language, "All"), subject_type)
+            ns("search_method"),
+            translate(language, "Filter subjects by..."),
+            choices = search_method_choices,
+            selected = input$search_method %||% "none" # Default to show all
+          ),
+          
+          # Conditional panel for Type selection
+          conditionalPanel(
+            condition = paste0("input['", ns("search_method"), "'] == 'type'"),
+            selectInput(
+              ns("type_filter"),
+              translate(language, "Select type:"),
+              choices = type_filter_choices
+            )
+          ),
+          
+          # Conditional panel for Track selection
+          conditionalPanel(
+            condition = paste0("input['", ns("search_method"), "'] == 'track'"),
+            selectInput(
+              ns("track_filter"),
+              translate(language, "Select track:"),
+              choices = track_filter_choices
+            )
+          ),
+          
+          # Conditional panel for Name search
+          conditionalPanel(
+            condition = paste0("input['", ns("search_method"), "'] == 'name'"),
+            textInput(
+              ns("name_search"),
+              translate(language, "Type subject name:")
+            ),
+            textOutput(ns("search_results_message_output"))
           )
         )
       })
       
-      output$search_subject_input=renderUI({
-        req(input$degree)
-        ns <- session$ns
-        degree_data = degree_data()
-        name_col_search <- paste0("name_",language)
-        subject_names_list <- degree_data$subjects_data[[name_col_search]]
-        tagList(
-          textInput(
-            ns("search_subject"),
-            translate(language, "Search subject"),
-          )
-        )
+      # Render message for name search results
+      output$search_results_message_output <- renderText({
+         req(input$search_method == "name")
+         if (!search_had_results()) {
+            translate(language, "No matching subjects found.")
+         } else {
+           ""
+         }
       })
-      
+      # --- End Dynamic Search/Filter Controls --- 
       
       # Selectors dinamics admin ----------------------------------------------------------------
       
@@ -1841,15 +1962,6 @@ subjectEnrollmentServer <- function(id, language) {
         }
       })
       
-      # --- Observe search input to reset type dropdown ---
-      observeEvent(input$search_subject, {
-        # Only reset if search box is not empty
-        if (!is.null(input$search_subject) && str_trim(input$search_subject) != "") {
-          updateSelectInput(session, "subject_type", 
-                          selected = translate(language, "All"))
-        }
-      }, ignoreNULL = FALSE, ignoreInit = TRUE) # ignoreNULL=FALSE ensures reset even if starts non-null
-      # -----------------------------------------------------
       
       # Reset enrollment process when student changes
       observeEvent(input$idp, {
@@ -1934,6 +2046,32 @@ subjectEnrollmentServer <- function(id, language) {
       })
       # --------------------------------------------------------------------
 
+      # --- Dynamic Itinerary Selector ---
+      output$uiItinerary <- renderUI({
+          req(input$degree, degree_data()$subject_type)
+          ns <- session$ns
+          degree_data <- degree_data()
+          subject_type_data <- degree_data$subject_type
+          
+          # Filter for actual itinerary types (path != 0)
+          itinerary_types <- subject_type_data %>% filter(path != "0") 
+          
+          # Construct choices
+          tipologia_col <- paste0("tipologia_", language)
+          itinerary_choices_list <- setNames(itinerary_types$path, itinerary_types[[tipologia_col]])
+          
+          # Add the "Not Sure" option at the beginning
+          final_choices <- c(setNames("0", translate(language, "Not Sure")), itinerary_choices_list)
+          
+          selectInput(
+              ns("itinerary"),
+              h4(translate(language, "Choose Track:"), icon("info-circle")),
+              choices = final_choices,
+              selected = input$itinerary %||% "0" # Maintain selection or default to "0"
+          )
+      })
+      # --- End Dynamic Itinerary Selector ---
+      
     }
   )
 }

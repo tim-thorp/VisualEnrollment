@@ -75,11 +75,6 @@ Status:;Estat:
 Desired ECTS for Enrollment:;ECTS desitjats per a la matrícula:
 Select ECTS for enrollment. 1 subject is usually 6 ECTS, with exceptions like internships or final projects.;Selecciona els ECTS a matricular. Normalment 1 assignatura = 6 ECTS, excepte pràctiques o TFG.
 Choose Track:;Escull Itinerari:
-Computer Engineering;Enginyeria de computadors
-Software Engineering;Enginyeria del programari
-Computing;Computació
-Information Systems;Sistemes d'informació
-Information Technology;Tecnologies de la informació
 Not Sure;No estic segur
 Track:;Itinerari:
 Elective;Optativa
@@ -93,3 +88,11 @@ Not available (Minimum %s ECTS required);No disponible (Mínim %s ECTS requerits
 Not available (You have already passed %s);No disponible (Ja has superat %s)
 and;i
 No matching subjects found.;No s'ha trobat cap assignatura que coincideixi.
+Show all;Mostra totes
+Type;Tipus
+Track;Itinerari
+Name;Nom
+Filter subjects by...;Filtra assignatures per...
+Select type:;Selecciona tipus:
+Select track:;Selecciona itinerari:
+Type subject name:;Escriu nom d'assignatura:

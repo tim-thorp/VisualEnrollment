@@ -4,8 +4,8 @@ O;0;Mandatory;Obligatòria;Obligatoria
 T;0;Mandatory;Obligatòria;Obligatoria
 C;0;Bridging;Complement;Complemento
 P;0;Elective;Optativa;Optativa
-P;1;Hardware (Elec.);Maquinari (Opt.);Hardware (Opt.)
-P;2;Software (Elec.);Programari (Opt.);Software (Opt.)
-P;3;Computation (Elec.);Computació (Opt.);Computación (Opt.)
-P;4;Information Systems (Elec.);Sistemes d'Informació (Opt.);Sistemas de Información(Opt.)
-P;5;Information Technologies (Elec.);Tecnologies de la Informació (Opt.);Tecnologías de la Información (Opt.)
+P;1;Computer Engineering;Enginyeria de computadors;Ingeniería de computadores
+P;2;Software Engineering;Enginyeria del programari;Ingeniería del software
+P;3;Computing;Computació;Computación
+P;4;Information Systems;Sistemes d'informació;Sistemas de información
+P;5;Information Technologies;Tecnologies de la informació;Tecnologías de la información
