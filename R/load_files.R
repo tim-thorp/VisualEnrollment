@@ -62,11 +62,13 @@ load_files <- function() {
       semester_number = "c",
       type = "c",
       path = "c",
-      subject_abbreviation = "c",
       credits = "d",
       name_en = "c",
       name_es = "c",
-      name_ca = "c"
+      name_ca = "c",
+      abbreviation_en = "c",
+      abbreviation_es = "c",
+      abbreviation_ca = "c"
     )
   )
   current_file_count <- current_file_count + 1

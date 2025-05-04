@@ -656,7 +656,14 @@ subjectEnrollmentServer <- function(id, language) {
               subject_code = subjects
             )
             
-            subject_coordinates <- merge(subject_coordinates, subjects_data, by='subject_code', all.x=T)
+            # Use the correct abbreviation column based on language
+            abbreviation_col <- paste0("abbreviation_", language)
+            # Merge only necessary columns initially
+            subject_coordinates <- merge(subject_coordinates, 
+                                         subjects_data[, c("subject_code", "type", "path", "semester_number", abbreviation_col)], 
+                                         by='subject_code', all.x=T)
+            # Rename the dynamic abbreviation column to a standard name for ggplot
+            subject_coordinates <- subject_coordinates %>% rename(current_abbreviation = !!sym(abbreviation_col))
             
             #subject_coordinates$TFM=as.factor(ifelse(subject_coordinates$ass==final_project_code,0,0))
             
@@ -839,7 +846,7 @@ subjectEnrollmentServer <- function(id, language) {
             
             # graf
             colorT="black"
-            subject_plot=ggplot(subject_coordinates, aes(x=x,y=y,label=subject_abbreviation)) +
+            subject_plot=ggplot(subject_coordinates, aes(x=x,y=y,label=current_abbreviation)) +
               theme_void() +
               theme(
                 panel.background=element_rect(fill=NA, color=NA),
@@ -924,7 +931,8 @@ subjectEnrollmentServer <- function(id, language) {
               # Centered text for all subjects
               geom_text(data = label_data, 
                       # Alpha: 1 (black) if selected_subjects=1 (matches filter/search or 'All'), 0.5 (lighter grey) otherwise.
-                      aes(alpha = ifelse(selected_subjects == 1, 1, 0.5), label=subject_abbreviation), 
+                      # Use the dynamically selected abbreviation column
+                      aes(alpha = ifelse(selected_subjects == 1, 1, 0.5), label=current_abbreviation), 
                       size=5, colour=colorT, hjust=0.5, vjust=0.5, show.legend = FALSE)
             
             # guardamos el mapa para hover, etc.
@@ -1217,10 +1225,12 @@ subjectEnrollmentServer <- function(id, language) {
         semester_start_date <- semester_dates$first_semester_start
 
         name_col_cal <- paste0("name_",language)
+        # Select the correct abbreviation column based on language for calendar
+        abbreviation_col_cal <- paste0("abbreviation_", language)
         subjects_info <- degree_data$subjects_data %>%
-          dplyr::select(subject_code, !!sym(name_col_cal), subject_abbreviation) %>%
-          rename(full_name = !!sym(name_col_cal)) %>%
-          mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
+          dplyr::select(subject_code, !!sym(name_col_cal), !!sym(abbreviation_col_cal)) %>%
+          rename(full_name = !!sym(name_col_cal), current_abbreviation = !!sym(abbreviation_col_cal)) %>%
+          mutate(full_name = paste0(full_name," (",current_abbreviation,")"))
         accumulated_activities_long <- as_tibble(accumulated_activities_long) %>% 
           mutate(semester_date = (semester_start_date + day_number)) %>% 
           left_join(subjects_info, by = "subject_code")
@@ -1302,6 +1312,7 @@ subjectEnrollmentServer <- function(id, language) {
       }, bordered=T, digits=0)
       
       
+      
       # Resum de la matricula ------------------------------------
       output$uiEnrollment=renderUI({
         if(enrollment_step$current_step < 4) {
@@ -1310,19 +1321,22 @@ subjectEnrollmentServer <- function(id, language) {
         ns <- session$ns
         degree_data <- degree_data()
         name_col_enr <- paste0("name_",language)
+        # Select the correct abbreviation column based on language for enrollment summary
+        abbreviation_col_enr <- paste0("abbreviation_", language)
         subjects_info <- degree_data$subjects_data %>%
-          dplyr::select(subject_code, !!sym(name_col_enr), subject_abbreviation) %>%
-          rename(full_name = !!sym(name_col_enr)) %>%
-          mutate(full_name = paste0(full_name," (",subject_abbreviation,")"))
+          dplyr::select(subject_code, !!sym(name_col_enr), !!sym(abbreviation_col_enr)) %>%
+          rename(full_name = !!sym(name_col_enr), current_abbreviation = !!sym(abbreviation_col_enr)) %>%
+          # Use full name AND abbreviation in the summary for clarity
+          mutate(display_name = paste0(full_name," (",current_abbreviation,")")) 
         descartaStr <- subjects_info %>% 
           filter(subject_code %in% discarded_list$subject_code) %>% 
-          pull(full_name)
+          pull(display_name)
         recomanaStr <- subjects_info %>% 
           filter(subject_code %in% recommended_list$subject_code) %>% 
-          pull(full_name)
+          pull(display_name)
         seleccioStr <- subjects_info %>% 
           filter(subject_code %in% selected_list$subject_code) %>% 
-          pull(full_name)
+          pull(display_name)
         tagList(
           h2(translate(language, "Thank you for using Visual Enrollment!")),
           h3(translate(language, "Your preferences and selection for the next enrollment:")),
