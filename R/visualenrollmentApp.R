@@ -3,7 +3,9 @@
 #' @export
 visualenrollmentApp <- function(...){
 
-  router <- make_router(
+  # Suppress deprecation warnings: make_router is deprecated,
+  # but router_ui is not compatible with fluent_page.
+  router <- suppressWarnings(make_router(
     route(
       "ca", 
       subjectEnrollmentUI("subject_enrollment_ca", "ca"),
@@ -26,7 +28,7 @@ visualenrollmentApp <- function(...){
       }
     ),
     NULL
-  )
+  ))
   
   ui <- shinyUI(fluent_page(router))
   
