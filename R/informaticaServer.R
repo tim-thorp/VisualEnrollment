@@ -472,7 +472,8 @@ subjectEnrollmentServer <- function(id, language) {
                 # Only show itinerary info for Optional subjects (Type P)
                 if (subject_type == "P" && subject_path_str != "0") { # Path 0 is not an itinerary
                     subject_paths <- unlist(str_split(subject_path_str, ",")) # Split for multiple itineraries (e.g., "1,5")
-                    selected_itinerary_path <- input$itinerary # User's choice ("0" means Not Sure)
+                    # Use default "0" if input$itinerary is NULL during initialization
+                    selected_itinerary_path <- if (is.null(input$itinerary)) "0" else input$itinerary
 
                     # Get itinerary names dynamically from subject_type data
                     tipologia_col <- paste0("tipologia_", language)
