@@ -36,6 +36,15 @@ This Shiny application helps students:
 4. Select the `VisualEnrollment.Rproj` file
 5. Click Open
 
+### Adding Required Data Files (Important)
+
+**Note:** Due to privacy concerns, two data files containing sensitive student information are not included in this repository:
+
+- `inst/data_files/aeps_INFORMATICA.csv` (Student academic records)
+- `inst/data_files/recomanacions_INFORMATICA.csv` (Recommendation data)
+
+You will need to obtain these files separately and place them in the `inst/data_files/` directory for the application to function correctly. Please contact Julià Minguillón if you need access to these files.
+
 ### Installing Dependencies
 
 This project uses [renv](https://rstudio.github.io/renv/) to manage package dependencies. When you open the project for the first time, you'll see a notification about package dependencies.
