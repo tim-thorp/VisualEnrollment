@@ -1292,8 +1292,13 @@ subjectEnrollmentServer <- function(id, language) {
         if (!is.null(degree_dataOUT$student_data) && nrow(degree_dataOUT$student_data) > 0) {
           name_col_rec <- paste0('name_',language)
           
+          # Get all attempts from student_enrollment_data
+          student_enrollment_data <- data_files[[paste0("recomanacions_", input$degree)]]
+          all_attempts_data <- student_enrollment_data[student_enrollment_data$user_id == input$idp, 
+            c('relative_semester', 'academic_year', 'subject_code', 'subject_mark')]
+          
           # Merge with subjects data for names
-          academic_record_data <- merge(degree_dataOUT$student_data, degree_dataOUT$subjects_data, by = 'subject_code')
+          academic_record_data <- merge(all_attempts_data, degree_dataOUT$subjects_data, by = 'subject_code')
           
           # Format academic year (e.g., "20201" -> "2020/2021-1")
           academic_record_data$academic_year <- sapply(academic_record_data$academic_year, function(year) {
