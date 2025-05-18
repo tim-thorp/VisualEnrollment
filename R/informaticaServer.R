@@ -1363,6 +1363,34 @@ subjectEnrollmentServer <- function(id, language) {
         seleccioStr <- subjects_info %>% 
           filter(subject_code %in% selected_list$subject_code) %>% 
           pull(display_name)
+        
+        # Calculate total ECTS for selected subjects
+        total_ects <- 0
+        if (length(selected_list$subject_code) > 0) {
+          total_ects <- degree_data$subjects_data %>%
+            filter(subject_code %in% selected_list$subject_code) %>%
+            summarise(total = sum(credits, na.rm = TRUE)) %>%
+            pull(total)
+        }
+        
+        # Get track name based on selected itinerary
+        track_name <- ""
+        if (input$itinerary != "0") {
+          # Get track name from subject_type data
+          track_info <- degree_data$subject_type %>%
+            filter(path == input$itinerary) %>%
+            slice(1) # Get first row in case there are multiple
+          
+          if (nrow(track_info) > 0) {
+            tipologia_col <- paste0("tipologia_", language)
+            track_name <- track_info[[tipologia_col]][1]
+          } else {
+            track_name <- translate(language, "Not Sure")
+          }
+        } else {
+          track_name <- translate(language, "Not Sure")
+        }
+        
         tagList(
           h2(translate(language, "Thank you for using Visual Enrollment!")),
           h3(translate(language, "Your preferences and selection for the next enrollment:")),
@@ -1370,6 +1398,10 @@ subjectEnrollmentServer <- function(id, language) {
             tags$li(class="step0", translate(language, "Discarded Subjects"), p(paste(descartaStr, collapse = ", "))),
             tags$li(class="step1", translate(language, "Preferences"),
                     div(
+                      translate(language, "Desired ECTS for Enrollment:"), paste0(input$desired_ects),
+                      br(),
+                      translate(language, "Track:"), track_name,
+                      br(),
                       translate(language,"Difficulty:"), paste0(input$difficulty, "/5"),
                       br(),
                       translate(language, "Popularity:"),  paste0(input$popularity, "/5"),
@@ -1380,7 +1412,17 @@ subjectEnrollmentServer <- function(id, language) {
                     )
             ),
             tags$li(class="step2", translate(language, "Recommendations"), p(paste(recomanaStr, collapse = ", "))),
-            tags$li(class="step3", translate(language, "Selection"), p(paste(seleccioStr, collapse = ", "))),
+            tags$li(class="step3", translate(language, "Selection"), 
+                    div(
+                      p(paste(seleccioStr, collapse = ", ")),
+                      p(sprintf(
+                        "%d %s (%d ECTS)",
+                        length(selected_list$subject_code),
+                        translate(language, ifelse(length(selected_list$subject_code) == 1, "Subject", "Subjects")),
+                        total_ects
+                      ))
+                    )
+            ),
           ),
           actionButton(ns("screenshot"), translate(language, "Download enrollment plan")),
           NULL
