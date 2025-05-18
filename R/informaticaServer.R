@@ -199,21 +199,20 @@ subjectEnrollmentServer <- function(id, language) {
         student_data = NULL
         transferred_credits = NULL
         if (!is.null(input$idp) && input$idp!="---") {
-          student_data=student_enrollment_data[student_enrollment_data$user_id==input$idp, c('relative_semester','subject_code','subject_mark')]
+          student_data=student_enrollment_data[student_enrollment_data$user_id==input$idp, c('relative_semester','academic_year','subject_code','subject_mark')]
           
           # la última nota de cada asignatura
-          student_data=aggregate(student_data[,c('relative_semester','subject_mark')],list(student_data$subject_code),function(x){return(x[length(x)])})
-          colnames(student_data)=c('subject_code','relative_semester','subject_mark')
+          student_data=aggregate(student_data[,c('relative_semester','academic_year','subject_mark')],list(student_data$subject_code),function(x){return(x[length(x)])})
+          colnames(student_data)=c('subject_code','relative_semester','academic_year','subject_mark')
           
           # convalidades: és com una nota especial (només les incorporades!)
-          #browser()
           transferred_credits=transferred_credits_data[transferred_credits_data$user_id==input$idp & transferred_credits_data$status=="Reconeguda",c('subject_code','status')]
           colnames(transferred_credits)=c('subject_code','subject_mark')
           
           # si té convalidades
           if (nrow(transferred_credits)>0) {
-            
-            transferred_credits$relative_semester="N/A"
+            transferred_credits$relative_semester="—"
+            transferred_credits$academic_year="—"
             transferred_credits=transferred_credits[,match(names(student_data),names(transferred_credits))]
             
             # afegir les convalidades a les ja matriculades
@@ -221,8 +220,6 @@ subjectEnrollmentServer <- function(id, language) {
           } else {
             transferred_credits=NULL
           }
-          # JULIA 29/08/2023 mantener el semestre absoluto
-          #student_data$sem=NULL
         }
         
         # Asignatura TFM es la que té tipus T
@@ -1294,9 +1291,32 @@ subjectEnrollmentServer <- function(id, language) {
         degree_dataOUT = degree_data()
         if (!is.null(degree_dataOUT$student_data) && nrow(degree_dataOUT$student_data) > 0) {
           name_col_rec <- paste0('name_',language)
-          academic_record_data=merge(degree_dataOUT$student_data, degree_dataOUT$subjects_data, by.x='subject_code', by.y='subject_code')
-          academic_record_data=academic_record_data[,c('relative_semester', name_col_rec, 'subject_mark')]
-          academic_record_data=academic_record_data[order(academic_record_data$relative_semester),]
+          
+          # Merge with subjects data for names
+          academic_record_data <- merge(degree_dataOUT$student_data, degree_dataOUT$subjects_data, by = 'subject_code')
+          
+          # Format academic year (e.g., "20201" -> "2020/2021-1")
+          academic_record_data$academic_year <- sapply(academic_record_data$academic_year, function(year) {
+            if (year == "—") return(year)  # Keep em-dash for transferred credits
+            year_str <- as.character(year)
+            if (nchar(year_str) == 5) {  # Check if it's in the format "YYYYX"
+              base_year <- substr(year_str, 1, 4)
+              semester <- substr(year_str, 5, 5)
+              return(paste0(base_year, "/", as.numeric(base_year) + 1, "-", semester))
+            }
+            return(year_str)  # Return original if not in expected format
+          })
+          
+          # Select and order columns
+          academic_record_data <- academic_record_data[,c('relative_semester', 'academic_year', name_col_rec, 'subject_mark')]
+          
+          # Order by academic year, semester, and subject name
+          academic_record_data <- academic_record_data[order(
+            academic_record_data$academic_year, 
+            academic_record_data$relative_semester,
+            academic_record_data[[name_col_rec]]
+          ),]
+          
           # JULIÀ 07/11/2023 notas
           academic_record_data[academic_record_data$subject_mark=="M",'subject_mark']=translate(language, "With Honors")
           academic_record_data[academic_record_data$subject_mark=="EX",'subject_mark']=translate(language, "Excellent")
@@ -1306,7 +1326,7 @@ subjectEnrollmentServer <- function(id, language) {
           academic_record_data[academic_record_data$subject_mark=="NP",'subject_mark']=translate(language, "Not Submitted")
           # falta traduir les convalidacions
           academic_record_data[academic_record_data$subject_mark=="Reconeguda",'subject_mark']=translate(language, "Transferred")
-          colnames(academic_record_data)=c(translate(language, "Semester"), translate(language, "Subject"), translate(language, "Grade")) 
+          colnames(academic_record_data)=c(translate(language, "Semester"), translate(language, "Academic Year"), translate(language, "Subject"), translate(language, "Grade")) 
           # mostrar la taula tal qual
           academic_record_data
         }
