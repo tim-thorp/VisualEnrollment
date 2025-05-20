@@ -1297,6 +1297,19 @@ subjectEnrollmentServer <- function(id, language) {
           all_attempts_data <- student_enrollment_data[student_enrollment_data$user_id == input$idp, 
             c('relative_semester', 'academic_year', 'subject_code', 'subject_mark')]
           
+          # Get transferred credits
+          transferred_credits_data <- data_files[[paste0("aeps_", input$degree)]]
+          transferred_credits <- transferred_credits_data[transferred_credits_data$user_id == input$idp & 
+                                                       transferred_credits_data$status == "Reconeguda",
+                                                       c('subject_code', 'status')]
+          if (nrow(transferred_credits) > 0) {
+            transferred_credits$relative_semester <- "—"
+            transferred_credits$academic_year <- "—"
+            colnames(transferred_credits)[2] <- 'subject_mark'
+            # Combine regular attempts with transferred credits
+            all_attempts_data <- rbind(transferred_credits, all_attempts_data)
+          }
+          
           # Merge with subjects data for names
           academic_record_data <- merge(all_attempts_data, degree_dataOUT$subjects_data, by = 'subject_code')
           
@@ -1318,8 +1331,10 @@ subjectEnrollmentServer <- function(id, language) {
           
           # Order by academic year, semester, and subject name
           academic_record_data <- academic_record_data[order(
-            academic_record_data$academic_year, 
-            academic_record_data$relative_semester,
+            # Custom sorting for academic year to put em-dash last
+            sapply(academic_record_data$academic_year, function(x) if(x == "—") "ZZZZ" else x),
+            # Custom sorting for semester to put em-dash last
+            sapply(academic_record_data$relative_semester, function(x) if(x == "—") "ZZZZ" else x),
             academic_record_data[[name_col_rec]]
           ),]
           
