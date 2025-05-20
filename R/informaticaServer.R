@@ -1300,14 +1300,15 @@ subjectEnrollmentServer <- function(id, language) {
           # Merge with subjects data for names
           academic_record_data <- merge(all_attempts_data, degree_dataOUT$subjects_data, by = 'subject_code')
           
-          # Format academic year (e.g., "20201" -> "2020/2021-1")
+          # Format academic year (e.g., "20201" -> "2020/21-1")
           academic_record_data$academic_year <- sapply(academic_record_data$academic_year, function(year) {
             if (year == "—") return(year)  # Keep em-dash for transferred credits
             year_str <- as.character(year)
             if (nchar(year_str) == 5) {  # Check if it's in the format "YYYYX"
               base_year <- substr(year_str, 1, 4)
               semester <- substr(year_str, 5, 5)
-              return(paste0(base_year, "/", as.numeric(base_year) + 1, "-", semester))
+              next_year_short <- substr(as.character(as.numeric(base_year) + 1), 3, 4)
+              return(paste0(base_year, "/", next_year_short, "-", semester))
             }
             return(year_str)  # Return original if not in expected format
           })
