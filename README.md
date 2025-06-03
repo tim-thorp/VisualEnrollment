@@ -16,7 +16,7 @@ This Shiny application helps students:
 ### Prerequisites
 
 - [R](https://www.r-project.org/) (v4.5.0 or higher)
-- [RStudio](https://posit.co/download/rstudio-desktop/) (2024.12 or higher)
+- [RStudio](https://posit.co/download/rstudio-desktop/) (2025.05 or higher)
 - [Git](https://git-scm.com/downloads)
 
 ### Cloning the Repository
